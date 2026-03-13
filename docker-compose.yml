@@ -6,6 +6,7 @@ services:
     environment:
       - DB_PATH=/app/data/oscar_bait.db
       - ADMIN_PASSCODE=${ADMIN_PASSCODE:?Set ADMIN_PASSCODE in .env}
+      - ALLOWED_ORIGIN=${ALLOWED_ORIGIN:-*}
     volumes:
       - oscar-data:/app/data
 

@@ -1,23 +1,52 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from database import get_db, init_db, CATEGORIES
-import hashlib
+from starlette.middleware.base import BaseHTTPMiddleware
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+import bcrypt
+import secrets
 import json
 import os
-
-app = FastAPI(title="Oscar Bait API")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+import sqlite3
 
 ADMIN_PASSCODE = os.environ.get("ADMIN_PASSCODE", "")
+ALLOWED_ORIGIN = os.environ.get("ALLOWED_ORIGIN", "*")
+
+app = FastAPI(title="Oscar Bait API", docs_url=None, redoc_url=None)
+
+# Rate limiter
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    from fastapi.responses import JSONResponse
+    return JSONResponse(status_code=429, content={"detail": "Too many requests. Please try again later."})
+
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[ALLOWED_ORIGIN],
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "X-Player-Token"],
+)
+
+
+# Security headers
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        return response
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 
 class PasscodeVerify(BaseModel):
@@ -52,39 +81,77 @@ class WinnerSet(BaseModel):
 
 @app.on_event("startup")
 def startup():
+    if not ADMIN_PASSCODE or len(ADMIN_PASSCODE) < 8:
+        raise RuntimeError("ADMIN_PASSCODE must be set and at least 8 characters long")
     init_db()
 
 
 def _hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+
+def _check_password(password: str, password_hash: str) -> bool:
+    # Handle legacy SHA256 hashes (64 hex chars) by upgrading to bcrypt
+    if len(password_hash) == 64 and not password_hash.startswith("$2"):
+        import hashlib
+        if hashlib.sha256(password.encode()).hexdigest() == password_hash:
+            return True  # caller should upgrade hash
+        return False
+    return bcrypt.checkpw(password.encode(), password_hash.encode())
+
+
+def _generate_token(player_id: int, password_hash: str) -> str:
+    """Generate a simple auth token from player_id and password_hash."""
+    import hashlib
+    return hashlib.sha256(f"{player_id}:{password_hash}".encode()).hexdigest()
+
+
+def _verify_player_token(player_id: int, token: str) -> bool:
+    """Verify a player's auth token."""
+    db = get_db()
+    row = db.execute("SELECT password_hash FROM players WHERE id = ?", (player_id,)).fetchone()
+    db.close()
+    if not row:
+        return False
+    expected = _generate_token(player_id, row["password_hash"])
+    return secrets.compare_digest(token, expected)
 
 
 @app.post("/api/players")
-def create_player(player: PlayerCreate):
+@limiter.limit("10/minute")
+def create_player(request: Request, player: PlayerCreate):
     name = player.name.strip()
     if not name:
         raise HTTPException(status_code=400, detail="Name cannot be empty")
     if not player.password:
         raise HTTPException(status_code=400, detail="Password cannot be empty")
-    password_hash = _hash_password(player.password)
     db = get_db()
     try:
+        password_hash = _hash_password(player.password)
         cursor = db.execute("INSERT INTO players (name, password_hash) VALUES (?, ?)", (name, password_hash))
         db.commit()
         player_id = cursor.lastrowid
-    except Exception:
+        token = _generate_token(player_id, password_hash)
+    except sqlite3.IntegrityError:
         # Player already exists — check password
         row = db.execute("SELECT id, name, password_hash FROM players WHERE name = ?", (name,)).fetchone()
         if row:
-            if row["password_hash"] != password_hash:
+            if not _check_password(player.password, row["password_hash"]):
                 db.close()
                 raise HTTPException(status_code=403, detail="Wrong password")
+            # Upgrade legacy SHA256 hash to bcrypt
+            current_hash = row["password_hash"]
+            if len(current_hash) == 64 and not current_hash.startswith("$2"):
+                new_hash = _hash_password(player.password)
+                db.execute("UPDATE players SET password_hash = ? WHERE id = ?", (new_hash, row["id"]))
+                db.commit()
+                current_hash = new_hash
             db.close()
-            return {"id": row["id"], "name": row["name"]}
+            return {"id": row["id"], "name": row["name"], "token": _generate_token(row["id"], current_hash)}
         db.close()
         raise HTTPException(status_code=400, detail="Could not create player")
     db.close()
-    return {"id": player_id, "name": name}
+    return {"id": player_id, "name": name, "token": token}
 
 
 @app.get("/api/players")
@@ -96,7 +163,10 @@ def list_players():
 
 
 @app.post("/api/picks/{player_id}")
-def submit_picks(player_id: int, picks: PicksSubmit):
+def submit_picks(player_id: int, picks: PicksSubmit, request: Request):
+    token = request.headers.get("X-Player-Token", "")
+    if not _verify_player_token(player_id, token):
+        raise HTTPException(status_code=403, detail="Invalid or missing auth token")
     db = get_db()
     player = db.execute("SELECT id FROM players WHERE id = ?", (player_id,)).fetchone()
     if not player:
@@ -131,7 +201,10 @@ def submit_picks(player_id: int, picks: PicksSubmit):
 
 
 @app.post("/api/picks/{player_id}/lock")
-def lock_picks(player_id: int):
+def lock_picks(player_id: int, request: Request):
+    token = request.headers.get("X-Player-Token", "")
+    if not _verify_player_token(player_id, token):
+        raise HTTPException(status_code=403, detail="Invalid or missing auth token")
     db = get_db()
     player = db.execute("SELECT id FROM players WHERE id = ?", (player_id,)).fetchone()
     if not player:
@@ -202,15 +275,16 @@ def _snapshot_current_ranks(db):
 
 
 @app.post("/api/admin/verify")
-def verify_passcode(data: PasscodeVerify):
-    if data.passcode != ADMIN_PASSCODE:
+@limiter.limit("5/minute")
+def verify_passcode(request: Request, data: PasscodeVerify):
+    if not secrets.compare_digest(data.passcode, ADMIN_PASSCODE):
         raise HTTPException(status_code=403, detail="Invalid passcode")
     return {"status": "ok"}
 
 
 @app.post("/api/admin/winner")
 def set_winner(data: WinnerSet):
-    if data.passcode != ADMIN_PASSCODE:
+    if not secrets.compare_digest(data.passcode, ADMIN_PASSCODE):
         raise HTTPException(status_code=403, detail="Invalid passcode")
 
     valid_categories = {c["name"]: c["nominees"] for c in CATEGORIES}
@@ -236,7 +310,7 @@ def set_winner(data: WinnerSet):
 
 @app.post("/api/admin/clear-winner")
 def clear_winner(data: WinnerClear):
-    if data.passcode != ADMIN_PASSCODE:
+    if not secrets.compare_digest(data.passcode, ADMIN_PASSCODE):
         raise HTTPException(status_code=403, detail="Invalid passcode")
 
     db = get_db()
@@ -248,7 +322,7 @@ def clear_winner(data: WinnerClear):
 
 @app.post("/api/admin/delete-player")
 def delete_player(data: PlayerDelete):
-    if data.passcode != ADMIN_PASSCODE:
+    if not secrets.compare_digest(data.passcode, ADMIN_PASSCODE):
         raise HTTPException(status_code=403, detail="Invalid passcode")
 
     db = get_db()

@@ -12,12 +12,19 @@ async function request(path, options = {}) {
   return res.json();
 }
 
+function getPlayerToken() {
+  try {
+    const p = JSON.parse(localStorage.getItem('oscar_bait_player'));
+    return p?.token || '';
+  } catch { return ''; }
+}
+
 export const api = {
   createPlayer: (name, password) => request('/api/players', { method: 'POST', body: JSON.stringify({ name, password }) }),
   getPlayers: () => request('/api/players'),
   submitPicks: (playerId, category, rankings) =>
-    request(`/api/picks/${playerId}`, { method: 'POST', body: JSON.stringify({ category, rankings }) }),
-  lockPicks: (playerId) => request(`/api/picks/${playerId}/lock`, { method: 'POST' }),
+    request(`/api/picks/${playerId}`, { method: 'POST', body: JSON.stringify({ category, rankings }), headers: { 'X-Player-Token': getPlayerToken() } }),
+  lockPicks: (playerId) => request(`/api/picks/${playerId}/lock`, { method: 'POST', headers: { 'X-Player-Token': getPlayerToken() } }),
   getPicks: (playerId) => request(`/api/picks/${playerId}`),
   setWinner: (category, winner, passcode) =>
     request('/api/admin/winner', { method: 'POST', body: JSON.stringify({ category, winner, passcode }) }),
