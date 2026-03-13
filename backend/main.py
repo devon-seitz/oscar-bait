@@ -179,15 +179,6 @@ def submit_picks(player_id: int, picks: PicksSubmit, request: Request):
         db.close()
         raise HTTPException(status_code=400, detail="Invalid category")
 
-    # Check if already locked
-    existing = db.execute(
-        "SELECT locked FROM picks WHERE player_id = ? AND category = ?",
-        (player_id, picks.category)
-    ).fetchone()
-    if existing and existing["locked"]:
-        db.close()
-        raise HTTPException(status_code=400, detail="Picks are locked for this category")
-
     rankings_json = json.dumps(picks.rankings)
     db.execute(
         """INSERT INTO picks (player_id, category, rankings)

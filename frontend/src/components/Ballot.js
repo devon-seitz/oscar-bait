@@ -18,18 +18,14 @@ import {
 import SortableNominee from './SortableNominee';
 import { unlockAudio } from '../sounds';
 
-export default function Ballot({ categories, picks, leaderboard, player, onSubmitPick, onLockPicks }) {
+export default function Ballot({ categories, picks, leaderboard, player, onSubmitPick }) {
   const [openCategory, setOpenCategory] = useState(null);
   const [localRankings, setLocalRankings] = useState({});
   const [saving, setSaving] = useState({});
   const [saved, setSaved] = useState({});
   const [activeId, setActiveId] = useState(null);
-  const [locked, setLocked] = useState(false);
-  const [lockLoading, setLockLoading] = useState(false);
   const [celebratingCats, setCelebratingCats] = useState({});
   const categoryRefs = useRef({});
-
-  const isLocked = locked || Object.values(picks).some(p => p.locked);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -156,15 +152,6 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
     setSaving(prev => ({ ...prev, [categoryName]: false }));
   };
 
-  const handleLock = async () => {
-    if (!window.confirm('Lock in all your picks? You won\'t be able to change them.')) return;
-    setLockLoading(true);
-    try {
-      await onLockPicks();
-      setLocked(true);
-    } catch (e) { alert(e.message); }
-    setLockLoading(false);
-  };
 
   return (
     <div className="fade-in-up">
@@ -235,7 +222,6 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
       <div className="mb-6">
         <div className="flex justify-between text-sm mb-2">
           <span className="text-oscar-white/60">{completedCount} of {categories.length} categories ranked</span>
-          {isLocked && <span className="text-oscar-gold font-medium">✓ Picks Locked</span>}
         </div>
         <div className="h-1.5 bg-oscar-white/10 rounded-full overflow-hidden">
           <div
@@ -245,23 +231,11 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
         </div>
       </div>
 
-      {/* Lock button */}
-      {!isLocked && completedCount > 0 && (
-        <button
-          onClick={handleLock}
-          disabled={lockLoading}
-          className="w-full mb-6 py-3 gold-gradient rounded-lg text-oscar-black font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-        >
-          {lockLoading ? 'Locking...' : `Lock In All Picks (${completedCount}/${categories.length})`}
-        </button>
-      )}
-
       {/* Categories */}
       <div className="space-y-2">
         {categories.map((cat) => {
           const isOpen = openCategory === cat.name;
           const hasPicks = picks[cat.name]?.rankings?.length > 0;
-          const catLocked = isLocked || picks[cat.name]?.locked;
           const rankings = getRankings(cat.name, cat.nominees);
           const isSaving = saving[cat.name];
 
@@ -321,7 +295,6 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
                 </div>
                 <div className="flex items-center gap-2">
                   {isSaving && <span className="text-xs text-oscar-gold/50">Saving...</span>}
-                  {catLocked && <span className="text-xs text-oscar-gold/50">🔒</span>}
                   <svg
                     className={`w-5 h-5 text-oscar-white/40 transition-transform ${isOpen ? 'rotate-180' : ''}`}
                     viewBox="0 0 24 24"
@@ -351,7 +324,7 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
                           id={nominee}
                           index={index}
                           totalNominees={cat.nominees.length}
-                          disabled={catLocked}
+                          disabled={false}
                         />
                       ))}
                     </SortableContext>
@@ -363,7 +336,7 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
                       ) : null}
                     </DragOverlay>
                   </DndContext>
-                  {!catLocked && (
+                  {(
                     <button
                       onClick={() => handleSaveCategory(cat.name, cat.nominees)}
                       disabled={isSaving}

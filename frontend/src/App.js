@@ -135,10 +135,6 @@ export default function App() {
     await refreshPicks();
   };
 
-  const handleLockPicks = async () => {
-    await api.lockPicks(player.id);
-    await refreshPicks();
-  };
 
   return (
     <div className="min-h-screen bg-oscar-black">
@@ -220,7 +216,6 @@ export default function App() {
             leaderboard={leaderboard}
             player={player}
             onSubmitPick={handleSubmitPick}
-            onLockPicks={handleLockPicks}
           />
         )}
         {page === 'leaderboard' && (
