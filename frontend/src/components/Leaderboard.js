@@ -54,7 +54,7 @@ function StatsBar({ data, announcedCount, totalCategories }) {
   }
 
   return (
-    <div className="gold-border rounded-lg px-4 py-3 mb-6 grid grid-cols-3 gap-4 text-center">
+    <div className="gold-border rounded-lg px-3 sm:px-4 py-3 mb-6 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-center">
       <div>
         <div className="text-oscar-white/40 text-xs uppercase tracking-wider mb-1">Winners Announced</div>
         <div className="font-serif text-xl font-bold text-oscar-gold">{announcedCount} / {totalCategories}</div>
@@ -146,8 +146,8 @@ function ExpandedDetail({ player, categories }) {
         <p className="text-oscar-white/40 text-sm py-2">No winners announced yet</p>
       ) : (
         <div className="mt-2">
-          {/* Header */}
-          <div className="grid grid-cols-12 gap-1 text-xs text-oscar-white/30 uppercase tracking-wider px-2 pb-1 mb-1 border-b border-oscar-white/5">
+          {/* Header — hidden on mobile, shown on sm+ */}
+          <div className="hidden sm:grid grid-cols-12 gap-1 text-xs text-oscar-white/30 uppercase tracking-wider px-2 pb-1 mb-1 border-b border-oscar-white/5">
             <div className="col-span-3">Category</div>
             <div className="col-span-3">Your Pick</div>
             <div className="col-span-3">Winner</div>
@@ -164,35 +164,67 @@ function ExpandedDetail({ player, categories }) {
             const rank1 = d.rank === 1;
 
             return (
-              <div
-                key={cat.name}
-                className={`grid grid-cols-12 gap-1 items-center py-1.5 px-2 rounded text-sm ${
-                  rank1 ? 'bg-oscar-gold/10' : noPick ? 'opacity-40' : 'bg-oscar-white/5'
-                }`}
-              >
-                <div className="col-span-3 text-oscar-white/70 truncate text-xs">{cat.name}</div>
-                <div className="col-span-3 truncate text-xs">
-                  {noPick ? (
-                    <span className="text-oscar-white/30">—</span>
-                  ) : (
-                    <span className="text-oscar-white/80">{d.full_rankings?.[0] || '—'}</span>
-                  )}
+              <div key={cat.name}>
+                {/* Desktop row */}
+                <div
+                  className={`hidden sm:grid grid-cols-12 gap-1 items-center py-1.5 px-2 rounded text-sm ${
+                    rank1 ? 'bg-oscar-gold/10' : noPick ? 'opacity-40' : 'bg-oscar-white/5'
+                  }`}
+                >
+                  <div className="col-span-3 text-oscar-white/70 truncate text-xs">{cat.name}</div>
+                  <div className="col-span-3 truncate text-xs">
+                    {noPick ? (
+                      <span className="text-oscar-white/30">—</span>
+                    ) : (
+                      <span className="text-oscar-white/80">{d.full_rankings?.[0] || '—'}</span>
+                    )}
+                  </div>
+                  <div className="col-span-3 truncate text-xs">
+                    <span className="text-oscar-white/80">{d.winner}</span>
+                    {d.has_picks && (
+                      isCorrect
+                        ? <span className="text-green-400 ml-1">✓</span>
+                        : <span className="text-red-400/60 ml-1">✗</span>
+                    )}
+                  </div>
+                  <div className="col-span-1 text-center text-xs text-oscar-white/50">
+                    {d.rank ? `#${d.rank}` : '—'}
+                  </div>
+                  <div className={`col-span-2 text-right text-xs font-semibold ${
+                    rank1 ? 'text-oscar-gold' : d.points > 0 ? 'text-oscar-white/70' : 'text-oscar-white/30'
+                  }`}>
+                    {d.points != null ? `+${d.points}` : '—'}
+                  </div>
                 </div>
-                <div className="col-span-3 truncate text-xs">
-                  <span className="text-oscar-white/80">{d.winner}</span>
-                  {d.has_picks && (
-                    isCorrect
-                      ? <span className="text-green-400 ml-1">✓</span>
-                      : <span className="text-red-400/60 ml-1">✗</span>
-                  )}
-                </div>
-                <div className="col-span-1 text-center text-xs text-oscar-white/50">
-                  {d.rank ? `#${d.rank}` : '—'}
-                </div>
-                <div className={`col-span-2 text-right text-xs font-semibold ${
-                  rank1 ? 'text-oscar-gold' : d.points > 0 ? 'text-oscar-white/70' : 'text-oscar-white/30'
-                }`}>
-                  {d.points != null ? `+${d.points}` : '—'}
+
+                {/* Mobile stacked row */}
+                <div
+                  className={`sm:hidden px-3 py-2.5 rounded mb-1 ${
+                    rank1 ? 'bg-oscar-gold/10' : noPick ? 'opacity-40' : 'bg-oscar-white/5'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm text-oscar-white/70 font-medium truncate mr-2">{cat.name}</span>
+                    <span className={`text-sm font-semibold flex-shrink-0 ${
+                      rank1 ? 'text-oscar-gold' : d.points > 0 ? 'text-oscar-white/70' : 'text-oscar-white/30'
+                    }`}>
+                      {d.points != null ? `+${d.points} pts` : '—'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-oscar-white/50">
+                      {noPick ? 'No pick' : <>Pick: <span className="text-oscar-white/80">{d.full_rankings?.[0] || '—'}</span></>}
+                    </span>
+                    <span className="text-oscar-white/50">
+                      Winner: <span className="text-oscar-white/80">{d.winner}</span>
+                      {d.has_picks && (
+                        isCorrect
+                          ? <span className="text-green-400 ml-1">✓</span>
+                          : <span className="text-red-400/60 ml-1">✗</span>
+                      )}
+                      {d.rank && <span className="ml-2 text-oscar-white/40">#{d.rank}</span>}
+                    </span>
+                  </div>
                 </div>
               </div>
             );
@@ -205,12 +237,18 @@ function ExpandedDetail({ player, categories }) {
               {unannounced.map(cat => {
                 const d = detail[cat.name];
                 return (
-                  <div key={cat.name} className="grid grid-cols-12 gap-1 items-center py-1 px-2 text-xs opacity-30">
-                    <div className="col-span-3 truncate">{cat.name}</div>
-                    <div className="col-span-3">{d?.has_picks ? 'Locked' : '—'}</div>
-                    <div className="col-span-3">—</div>
-                    <div className="col-span-1 text-center">—</div>
-                    <div className="col-span-2 text-right">—</div>
+                  <div key={cat.name}>
+                    <div className="hidden sm:grid grid-cols-12 gap-1 items-center py-1 px-2 text-xs opacity-30">
+                      <div className="col-span-3 truncate">{cat.name}</div>
+                      <div className="col-span-3">{d?.has_picks ? 'Locked' : '—'}</div>
+                      <div className="col-span-3">—</div>
+                      <div className="col-span-1 text-center">—</div>
+                      <div className="col-span-2 text-right">—</div>
+                    </div>
+                    <div className="sm:hidden flex items-center justify-between px-3 py-1.5 text-xs opacity-30">
+                      <span className="truncate">{cat.name}</span>
+                      <span>{d?.has_picks ? 'Locked' : '—'}</span>
+                    </div>
                   </div>
                 );
               })}

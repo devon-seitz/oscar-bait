@@ -111,7 +111,7 @@ export default function Admin({ categories, onRefresh }) {
                     setDeleting(prev => ({ ...prev, [p.id]: false }));
                   }}
                   disabled={deleting[p.id]}
-                  className="px-2.5 py-1 rounded text-xs font-medium text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-50"
+                  className="px-3 py-2 rounded text-sm font-medium text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-50 min-h-[44px] flex items-center"
                 >
                   {deleting[p.id] ? 'Deleting...' : 'Delete'}
                 </button>
@@ -157,7 +157,7 @@ export default function Admin({ categories, onRefresh }) {
                   key={nominee}
                   onClick={() => handleSetWinner(cat.name, nominee)}
                   disabled={setting[cat.name]}
-                  className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
+                  className={`w-full text-left px-4 py-3 rounded text-sm transition-colors min-h-[44px] ${
                     cat.winner === nominee
                       ? 'gold-gradient text-oscar-black font-semibold'
                       : 'bg-oscar-white/5 text-oscar-white/70 hover:bg-oscar-gold/10 hover:text-oscar-white'

@@ -177,21 +177,21 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
 
       {/* Mini Scoreboard */}
       {announcedCategories.length > 0 && (
-        <div className="mb-6 gold-border rounded-lg p-4 bg-oscar-gold/5">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="mb-6 gold-border rounded-lg p-3 sm:p-4 bg-oscar-gold/5">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <div>
               <p className="text-xs text-oscar-white/40 mb-1">Points Earned</p>
-              <p className={`font-serif text-2xl font-bold transition-all duration-500 ${
+              <p className={`font-serif text-xl sm:text-2xl font-bold transition-all duration-500 ${
                 scoreGlow ? 'gold-shimmer score-glow' : 'gold-text-gradient'
               }`}>{myScore}</p>
             </div>
             <div>
               <p className="text-xs text-oscar-white/40 mb-1">Points Possible</p>
-              <p className="font-serif text-2xl font-bold text-oscar-white/70">{pointsPossible}</p>
+              <p className="font-serif text-xl sm:text-2xl font-bold text-oscar-white/70">{pointsPossible}</p>
             </div>
             <div>
               <p className="text-xs text-oscar-white/40 mb-1">Your Rank</p>
-              <p className="font-serif text-2xl font-bold text-oscar-white/70">
+              <p className="font-serif text-xl sm:text-2xl font-bold text-oscar-white/70">
                 {myRank ? `#${myRank}` : '—'}
                 <span className="text-sm font-sans text-oscar-white/30 ml-1">/ {leaderboard.length}</span>
               </p>
@@ -276,23 +276,25 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
                 onClick={() => setOpenCategory(isOpen ? null : cat.name)}
                 className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-oscar-gold/5 transition-colors"
               >
-                <div className="flex items-center gap-3 flex-wrap">
-                  {cat.winner ? (
-                    <span className="w-3 h-3 rounded-full flex-shrink-0 gold-gradient shadow-[0_0_6px_rgba(197,164,78,0.4)]" />
-                  ) : hasPicks ? (
-                    <span className="w-3 h-3 rounded-full flex-shrink-0 gold-gradient opacity-80" />
-                  ) : (
-                    <span className="w-3 h-3 rounded-full flex-shrink-0 border border-oscar-white/20" />
-                  )}
-                  <span className="font-serif text-lg font-semibold text-oscar-white text-left">{cat.name}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    {cat.winner ? (
+                      <span className="w-3 h-3 rounded-full flex-shrink-0 gold-gradient shadow-[0_0_6px_rgba(197,164,78,0.4)]" />
+                    ) : hasPicks ? (
+                      <span className="w-3 h-3 rounded-full flex-shrink-0 gold-gradient opacity-80" />
+                    ) : (
+                      <span className="w-3 h-3 rounded-full flex-shrink-0 border border-oscar-white/20" />
+                    )}
+                    <span className="font-serif text-base sm:text-lg font-semibold text-oscar-white text-left truncate">{cat.name}</span>
+                  </div>
                   {cat.winner && (
-                    <>
-                      <span className={`text-xs text-oscar-gold bg-oscar-gold/10 px-2 py-0.5 rounded-full ${
+                    <div className="flex items-center gap-2 mt-1 ml-5 sm:ml-6">
+                      <span className={`text-xs text-oscar-gold bg-oscar-gold/10 px-2 py-0.5 rounded-full truncate ${
                         isCelebrating ? 'badge-slide-in' : ''
                       }`}>
-                        Winner: {cat.winner}
+                        {cat.winner}
                       </span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                      <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
                         isCelebrating ? 'points-count-up' : ''
                       } ${
                         catPoints === cat.nominees.length
@@ -305,7 +307,7 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
                           `+${catPoints ?? 0} pts`
                         )}
                       </span>
-                    </>
+                    </div>
                   )}
                 </div>
                 <div className="flex items-center gap-2">

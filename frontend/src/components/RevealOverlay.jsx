@@ -153,21 +153,21 @@ export default function RevealOverlay({ announcement, onDismiss, currentPlayerNa
       >
         {/* Phase 1: Envelope */}
         {phase === 'envelope' && (
-          <div className="envelope-fade-in text-center px-6">
+          <div className="envelope-fade-in text-center px-4 sm:px-6">
             <p
-              className="font-serif text-oscar-white/70 text-lg md:text-xl mb-4"
+              className="font-serif text-oscar-white/70 text-xl md:text-2xl mb-4"
               style={{ letterSpacing: '0.1em' }}
             >
               And the Oscar for
             </p>
             <h2
-              className="font-serif font-bold text-2xl md:text-4xl mb-6"
+              className="font-serif font-bold text-3xl md:text-4xl mb-6"
               style={{ color: '#C5A44E', letterSpacing: '0.15em', textTransform: 'uppercase' }}
             >
               {category}
             </h2>
             <p
-              className="font-serif text-oscar-white/70 text-lg md:text-xl"
+              className="font-serif text-oscar-white/70 text-xl md:text-2xl"
               style={{ letterSpacing: '0.1em' }}
             >
               goes to
@@ -180,9 +180,9 @@ export default function RevealOverlay({ announcement, onDismiss, currentPlayerNa
 
         {/* Phase 2: Winner */}
         {phase === 'winner' && (
-          <div className="text-center px-6">
+          <div className="text-center px-4 sm:px-6">
             <p
-              className="font-serif text-oscar-white/50 text-sm md:text-base mb-3"
+              className="font-serif text-oscar-white/50 text-base md:text-lg mb-3"
               style={{ letterSpacing: '0.15em', textTransform: 'uppercase' }}
             >
               {category}
@@ -204,10 +204,10 @@ export default function RevealOverlay({ announcement, onDismiss, currentPlayerNa
 
         {/* Phase 3: Scoreboard */}
         {phase === 'scoreboard' && (
-          <div className="scoreboard-slide-up w-full max-w-lg px-6" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
-            <div className="text-center mb-6">
+          <div className="scoreboard-slide-up w-full max-w-lg px-3 sm:px-6" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+            <div className="text-center mb-4 sm:mb-6">
               <p
-                className="font-serif text-oscar-white/50 text-sm mb-2"
+                className="font-serif text-oscar-white/50 text-sm sm:text-base mb-2"
                 style={{ letterSpacing: '0.15em', textTransform: 'uppercase' }}
               >
                 {category}
@@ -230,39 +230,75 @@ export default function RevealOverlay({ announcement, onDismiss, currentPlayerNa
                 return (
                   <div
                     key={result.player_name}
-                    className="flex items-center justify-between px-4 py-3 text-sm md:text-base"
                     style={{
                       backgroundColor: bgColor,
                       borderLeft: isCurrentPlayer ? '3px solid #C5A44E' : '3px solid transparent',
                     }}
                   >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-5 text-center flex-shrink-0">
-                        {isTopScorer ? '\u{1F3C6}' : ''}
-                      </span>
-                      <span
-                        className="font-medium truncate"
-                        style={{ color: isCurrentPlayer ? '#C5A44E' : '#FAF8F5' }}
-                      >
-                        {result.player_name}
-                      </span>
+                    {/* Desktop row */}
+                    <div className="hidden sm:flex items-center justify-between px-4 py-3 text-base">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="w-5 text-center flex-shrink-0">
+                          {isTopScorer ? '\u{1F3C6}' : ''}
+                        </span>
+                        <span
+                          className="font-medium truncate"
+                          style={{ color: isCurrentPlayer ? '#C5A44E' : '#FAF8F5' }}
+                        >
+                          {result.player_name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4 flex-shrink-0">
+                        <span className="text-oscar-white/50 text-sm">
+                          {result.rank_given
+                            ? `#${result.rank_given} pick`
+                            : 'no pick'}
+                          {isLastPick && result.rank_given ? ' \u{1F62C}' : ''}
+                        </span>
+                        <span
+                          className="font-bold tabular-nums w-16 text-right"
+                          style={{ color: result.points_earned > 0 ? '#C5A44E' : 'rgba(250, 248, 245, 0.3)' }}
+                        >
+                          +{result.points_earned} pt{result.points_earned !== 1 ? 's' : ''}
+                        </span>
+                        <span className="text-oscar-white/30 text-xs tabular-nums w-14 text-right">
+                          {result.total_score} total
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4 flex-shrink-0">
-                      <span className="text-oscar-white/50 text-xs md:text-sm">
-                        {result.rank_given
-                          ? `#${result.rank_given} pick`
-                          : 'no pick'}
-                        {isLastPick && result.rank_given ? ' \u{1F62C}' : ''}
-                      </span>
-                      <span
-                        className="font-bold tabular-nums w-16 text-right"
-                        style={{ color: result.points_earned > 0 ? '#C5A44E' : 'rgba(250, 248, 245, 0.3)' }}
-                      >
-                        +{result.points_earned} pt{result.points_earned !== 1 ? 's' : ''}
-                      </span>
-                      <span className="text-oscar-white/30 text-xs tabular-nums w-14 text-right">
-                        {result.total_score} total
-                      </span>
+
+                    {/* Mobile row — stacked */}
+                    <div className="sm:hidden px-3 py-2.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span className="w-5 text-center flex-shrink-0 text-sm">
+                            {isTopScorer ? '\u{1F3C6}' : ''}
+                          </span>
+                          <span
+                            className="font-medium truncate text-sm"
+                            style={{ color: isCurrentPlayer ? '#C5A44E' : '#FAF8F5' }}
+                          >
+                            {result.player_name}
+                          </span>
+                        </div>
+                        <span
+                          className="font-bold tabular-nums text-sm flex-shrink-0"
+                          style={{ color: result.points_earned > 0 ? '#C5A44E' : 'rgba(250, 248, 245, 0.3)' }}
+                        >
+                          +{result.points_earned} pts
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between mt-0.5 pl-6">
+                        <span className="text-oscar-white/40 text-xs">
+                          {result.rank_given
+                            ? `#${result.rank_given} pick`
+                            : 'no pick'}
+                          {isLastPick && result.rank_given ? ' \u{1F62C}' : ''}
+                        </span>
+                        <span className="text-oscar-white/30 text-xs tabular-nums">
+                          {result.total_score} total
+                        </span>
+                      </div>
                     </div>
                   </div>
                 );

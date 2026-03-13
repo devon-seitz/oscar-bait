@@ -22,11 +22,9 @@ export default function Home({ onJoin, onViewLeaderboard }) {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] fade-in-up">
-      {/* Trophy icon */}
+      {/* Logo */}
       <div className="mb-6">
-        <svg className="w-24 h-24 text-oscar-gold opacity-80" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 15c-3.31 0-6-2.69-6-6V3h12v6c0 3.31-2.69 6-6 6zm8-12h-2v6c0 1.1-.22 2.15-.62 3.11.92-.55 1.62-1.57 1.62-2.73V5c0-.55-.45-1-1-1zm-14 0H4c-.55 0-1 .45-1 1v1.38c0 1.16.7 2.18 1.62 2.73C4.22 8.15 4 7.1 4 6V3zm4 15v2H8c-.55 0-1 .45-1 1s.45 1 1 1h8c.55 0 1-.45 1-1s-.45-1-1-1h-2v-2c3.95-.49 7-3.85 7-7.9V3c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v4.1c0 4.05 3.05 7.41 7 7.9z"/>
-        </svg>
+        <img src="/logo.png" alt="Oscar Bait" className="w-24 h-32 object-contain" />
       </div>
 
       <h1 className="font-serif text-5xl md:text-7xl font-bold gold-shimmer mb-3">
