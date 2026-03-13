@@ -338,6 +338,8 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
                   </DndContext>
                   {(
                     <button
+                      type="button"
+                      data-1p-ignore
                       onClick={() => handleSaveCategory(cat.name, cat.nominees)}
                       disabled={isSaving}
                       className="w-full mt-3 py-2.5 rounded-lg text-sm font-semibold transition-all gold-border-bright text-oscar-gold hover:bg-oscar-gold/10 disabled:opacity-50"
