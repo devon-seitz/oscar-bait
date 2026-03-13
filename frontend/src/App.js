@@ -4,6 +4,7 @@ import Home from './components/Home';
 import Ballot from './components/Ballot';
 import Leaderboard from './components/Leaderboard';
 import Admin from './components/Admin';
+import About from './components/About';
 import RevealOverlay from './components/RevealOverlay';
 import OnboardingOverlay from './components/OnboardingOverlay';
 
@@ -182,6 +183,12 @@ export default function App() {
                 Admin
               </button>
             )}
+            <button
+              onClick={() => setPage('about')}
+              className={`px-2.5 sm:px-3 py-2 sm:py-2 rounded text-sm font-medium transition-colors min-h-[44px] flex items-center ${page === 'about' ? 'bg-oscar-gold/20 text-oscar-gold' : 'text-oscar-white/60 hover:text-oscar-white'}`}
+            >
+              About
+            </button>
             {player && (
               <button
                 onClick={handleLogout}
@@ -220,6 +227,7 @@ export default function App() {
           <Leaderboard data={leaderboard} categories={categories} currentPlayerName={player?.name} />
         )}
         {page === 'admin' && <Admin categories={categories} onRefresh={refreshCategories} onAuthenticated={() => setIsAdmin(true)} />}
+        {page === 'about' && <About />}
       </main>
     </div>
   );
