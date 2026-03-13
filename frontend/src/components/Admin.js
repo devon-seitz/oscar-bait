@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api';
 
-export default function Admin({ categories, onRefresh }) {
+export default function Admin({ categories, onRefresh, onAuthenticated }) {
   const [passcode, setPasscode] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
   const [setting, setSetting] = useState({});
@@ -19,7 +19,7 @@ export default function Admin({ categories, onRefresh }) {
   // Try stored passcode
   useEffect(() => {
     const stored = sessionStorage.getItem('admin_passcode');
-    if (stored) { setPasscode(stored); setAuthenticated(true); }
+    if (stored) { setPasscode(stored); setAuthenticated(true); onAuthenticated?.(); }
   }, []);
 
   useEffect(() => {
@@ -32,6 +32,7 @@ export default function Admin({ categories, onRefresh }) {
       await api.verifyPasscode(passcode);
       setAuthenticated(true);
       sessionStorage.setItem('admin_passcode', passcode);
+      onAuthenticated?.();
     } catch (err) {
       setMessage('Invalid passcode');
     }

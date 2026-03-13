@@ -192,6 +192,21 @@
     .final-winner-card {
       animation: confettiBurst 0.8s ease-out;
     }
+    /* Onboarding step transitions */
+    @keyframes stepSlideInRight {
+      from { opacity: 0; transform: translateX(40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes stepSlideInLeft {
+      from { opacity: 0; transform: translateX(-40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .step-slide-right {
+      animation: stepSlideInRight 0.35s ease-out;
+    }
+    .step-slide-left {
+      animation: stepSlideInLeft 0.35s ease-out;
+    }
   </style>
 </head>
 <body>

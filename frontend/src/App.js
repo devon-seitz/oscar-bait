@@ -5,6 +5,7 @@ import Ballot from './components/Ballot';
 import Leaderboard from './components/Leaderboard';
 import Admin from './components/Admin';
 import RevealOverlay from './components/RevealOverlay';
+import OnboardingOverlay from './components/OnboardingOverlay';
 
 export default function App() {
   const storedPlayer = () => {
@@ -17,6 +18,8 @@ export default function App() {
   const [picks, setPicks] = useState({});
   const [revealQueue, setRevealQueue] = useState([]);
   const [activeReveal, setActiveReveal] = useState(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(() => !!sessionStorage.getItem('admin_passcode'));
   const lastSeenAnnouncementTimeRef = useRef(new Date().toISOString());
 
   // Check URL hash for admin
@@ -99,7 +102,18 @@ export default function App() {
     const p = await api.createPlayer(name, password);
     setPlayer(p);
     localStorage.setItem('oscar_bait_player', JSON.stringify(p));
+    const onboardingKey = `oscar_bait_onboarding_seen_${p.id}`;
+    if (!localStorage.getItem(onboardingKey)) {
+      setShowOnboarding(true);
+    }
     setPage('ballot');
+  };
+
+  const handleOnboardingDismiss = () => {
+    setShowOnboarding(false);
+    if (player) {
+      localStorage.setItem(`oscar_bait_onboarding_seen_${player.id}`, 'true');
+    }
   };
 
   const handleLogout = () => {
@@ -121,6 +135,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-oscar-black">
+      {showOnboarding && (
+        <OnboardingOverlay onDismiss={handleOnboardingDismiss} />
+      )}
       {activeReveal && (
         <RevealOverlay
           announcement={activeReveal}
@@ -151,6 +168,14 @@ export default function App() {
               <span className="hidden sm:inline">Leaderboard</span>
               <span className="sm:hidden">Board</span>
             </button>
+            {isAdmin && (
+              <button
+                onClick={() => setPage('admin')}
+                className={`px-2.5 sm:px-3 py-2 sm:py-2 rounded text-sm font-medium transition-colors min-h-[44px] flex items-center ${page === 'admin' ? 'bg-oscar-gold/20 text-oscar-gold' : 'text-oscar-white/60 hover:text-oscar-white'}`}
+              >
+                Admin
+              </button>
+            )}
             {player && (
               <button
                 onClick={handleLogout}
@@ -180,7 +205,7 @@ export default function App() {
         {page === 'leaderboard' && (
           <Leaderboard data={leaderboard} categories={categories} currentPlayerName={player?.name} />
         )}
-        {page === 'admin' && <Admin categories={categories} onRefresh={refreshCategories} />}
+        {page === 'admin' && <Admin categories={categories} onRefresh={refreshCategories} onAuthenticated={() => setIsAdmin(true)} />}
       </main>
     </div>
   );
