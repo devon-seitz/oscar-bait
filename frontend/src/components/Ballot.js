@@ -27,6 +27,7 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
   const [locked, setLocked] = useState(false);
   const [lockLoading, setLockLoading] = useState(false);
   const [celebratingCats, setCelebratingCats] = useState({});
+  const categoryRefs = useRef({});
 
   const isLocked = locked || Object.values(picks).some(p => p.locked);
 
@@ -268,12 +269,20 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
           const catPoints = getCategoryPoints(cat);
 
           return (
-            <div key={cat.name} className={`rounded-lg overflow-hidden transition-all ${
+            <div key={cat.name} ref={el => categoryRefs.current[cat.name] = el} style={{ scrollMarginTop: '60px' }} className={`rounded-lg overflow-hidden transition-all ${
               isCelebrating ? 'card-celebrate gold-border-bright' : 'gold-border'
             }`}>
               {/* Category header */}
               <button
-                onClick={() => setOpenCategory(isOpen ? null : cat.name)}
+                onClick={() => {
+                  const opening = !isOpen;
+                  setOpenCategory(isOpen ? null : cat.name);
+                  if (opening) {
+                    setTimeout(() => {
+                      categoryRefs.current[cat.name]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 50);
+                  }
+                }}
                 className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-oscar-gold/5 transition-colors"
               >
                 <div className="flex-1 min-w-0">
