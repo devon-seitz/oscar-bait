@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0A0A0A" />
+  <title>Oscar Bait</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            oscar: {
+              black: '#0A0A0A',
+              gold: '#C5A44E',
+              'gold-light': '#D4B96A',
+              'gold-dark': '#A88B3D',
+              white: '#FAF8F5',
+              champagne: '#F5E6C8',
+              'champagne-dark': '#E8D5A8',
+            }
+          },
+          fontFamily: {
+            serif: ['Cormorant Garamond', 'Georgia', 'serif'],
+            sans: ['DM Sans', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      margin: 0;
+      background-color: #0A0A0A;
+      color: #FAF8F5;
+      font-family: 'DM Sans', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .gold-gradient {
+      background: linear-gradient(135deg, #C5A44E 0%, #D4B96A 50%, #C5A44E 100%);
+    }
+    .gold-text-gradient {
+      background: linear-gradient(135deg, #C5A44E 0%, #D4B96A 50%, #E8D5A8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .gold-border {
+      border: 1px solid rgba(197, 164, 78, 0.3);
+    }
+    .gold-border-bright {
+      border: 1px solid rgba(197, 164, 78, 0.6);
+    }
+    @keyframes scoreGlow {
+      0%, 100% { text-shadow: 0 0 8px rgba(197, 164, 78, 0.3); }
+      50% { text-shadow: 0 0 24px rgba(197, 164, 78, 0.8), 0 0 48px rgba(197, 164, 78, 0.4); }
+    }
+    .score-glow {
+      animation: scoreGlow 1s ease-in-out 2;
+    }
+    .drag-item {
+      touch-action: none;
+      user-select: none;
+    }
+    .drag-item-dragging {
+      opacity: 0.5;
+    }
+    .drag-overlay {
+      box-shadow: 0 8px 32px rgba(197, 164, 78, 0.3);
+    }
+    @keyframes goldPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(197, 164, 78, 0.4); }
+      50% { box-shadow: 0 0 20px 4px rgba(197, 164, 78, 0.2); }
+    }
+    .winner-announce {
+      animation: goldPulse 2s ease-in-out 3;
+    }
+    @keyframes cardCelebrate {
+      0% { border-color: rgba(197, 164, 78, 0.3); box-shadow: 0 0 0 0 rgba(197, 164, 78, 0); }
+      15% { border-color: rgba(197, 164, 78, 0.9); box-shadow: 0 0 24px 4px rgba(197, 164, 78, 0.3); }
+      40% { border-color: rgba(197, 164, 78, 0.7); box-shadow: 0 0 16px 2px rgba(197, 164, 78, 0.15); }
+      60% { border-color: rgba(197, 164, 78, 0.8); box-shadow: 0 0 20px 3px rgba(197, 164, 78, 0.2); }
+      100% { border-color: rgba(197, 164, 78, 0.4); box-shadow: 0 0 0 0 rgba(197, 164, 78, 0); }
+    }
+    .card-celebrate {
+      animation: cardCelebrate 2.5s ease-out;
+    }
+    @keyframes slideInBadge {
+      from { opacity: 0; transform: translateX(-12px) scale(0.8); }
+      to { opacity: 1; transform: translateX(0) scale(1); }
+    }
+    .badge-slide-in {
+      animation: slideInBadge 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+    }
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .points-count-up {
+      animation: countUp 0.4s ease-out 0.6s both;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in-up {
+      animation: fadeInUp 0.4s ease-out;
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+    .gold-shimmer {
+      background: linear-gradient(90deg, #C5A44E 0%, #E8D5A8 25%, #C5A44E 50%, #E8D5A8 75%, #C5A44E 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 3s linear infinite;
+    }
+    /* Reveal overlay animations */
+    @keyframes slamIn {
+      0% { opacity: 0; transform: scale(1.5); }
+      60% { opacity: 1; transform: scale(0.95); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .slam-in {
+      animation: slamIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    @keyframes dotPulse {
+      0%, 20% { opacity: 0; }
+      40%, 100% { opacity: 1; }
+    }
+    .animate-dot-1 { animation: dotPulse 1.5s ease-in-out infinite; }
+    .animate-dot-2 { animation: dotPulse 1.5s ease-in-out infinite 0.3s; }
+    .animate-dot-3 { animation: dotPulse 1.5s ease-in-out infinite 0.6s; }
+    @keyframes envelopeFadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .envelope-fade-in {
+      animation: envelopeFadeIn 0.8s ease-out forwards;
+    }
+    @keyframes goldGlow {
+      0%, 100% { text-shadow: 0 0 20px rgba(197, 164, 78, 0.3); }
+      50% { text-shadow: 0 0 40px rgba(197, 164, 78, 0.6), 0 0 80px rgba(197, 164, 78, 0.3); }
+    }
+    .gold-glow {
+      animation: goldGlow 2s ease-in-out infinite;
+    }
+    @keyframes scoreboardSlideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .scoreboard-slide-up {
+      animation: scoreboardSlideUp 0.5s ease-out forwards;
+    }
+    /* Leaderboard glow-up styles */
+    .glow-gold {
+      box-shadow: 0 0 16px 2px rgba(197, 164, 78, 0.3), inset 0 0 8px rgba(197, 164, 78, 0.05);
+    }
+    .glow-silver {
+      box-shadow: 0 0 16px 2px rgba(160, 160, 160, 0.25), inset 0 0 8px rgba(160, 160, 160, 0.05);
+    }
+    .glow-bronze {
+      box-shadow: 0 0 12px 2px rgba(205, 127, 50, 0.25), inset 0 0 8px rgba(205, 127, 50, 0.05);
+    }
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .live-dot {
+      animation: livePulse 2s ease-in-out infinite;
+    }
+    @keyframes goldFlash {
+      0% { background-color: rgba(197, 164, 78, 0); }
+      30% { background-color: rgba(197, 164, 78, 0.12); }
+      100% { background-color: rgba(197, 164, 78, 0); }
+    }
+    .card-flash {
+      animation: goldFlash 1.2s ease-out;
+    }
+    @keyframes confettiBurst {
+      0% { opacity: 0; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.02); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .final-winner-card {
+      animation: confettiBurst 0.8s ease-out;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+</body>
+</html>

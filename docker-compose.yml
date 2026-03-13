@@ -1,0 +1,13 @@
+services:
+  oscar-bait:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_PATH=/app/data/oscar_bait.db
+      - ADMIN_PASSCODE=${ADMIN_PASSCODE:?Set ADMIN_PASSCODE in .env}
+    volumes:
+      - oscar-data:/app/data
+
+volumes:
+  oscar-data:
