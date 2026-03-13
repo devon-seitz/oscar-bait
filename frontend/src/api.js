@@ -13,7 +13,7 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  createPlayer: (name) => request('/api/players', { method: 'POST', body: JSON.stringify({ name }) }),
+  createPlayer: (name, password) => request('/api/players', { method: 'POST', body: JSON.stringify({ name, password }) }),
   getPlayers: () => request('/api/players'),
   submitPicks: (playerId, category, rankings) =>
     request(`/api/picks/${playerId}`, { method: 'POST', body: JSON.stringify({ category, rankings }) }),

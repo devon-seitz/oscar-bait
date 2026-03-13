@@ -95,8 +95,8 @@ export default function App() {
     if (player) refreshPicks();
   }, [player, refreshPicks]);
 
-  const handleJoin = async (name) => {
-    const p = await api.createPlayer(name);
+  const handleJoin = async (name, password) => {
+    const p = await api.createPlayer(name, password);
     setPlayer(p);
     localStorage.setItem('oscar_bait_player', JSON.stringify(p));
     setPage('ballot');

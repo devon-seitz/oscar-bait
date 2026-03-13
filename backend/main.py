@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from database import get_db, init_db, CATEGORIES
+import hashlib
 import json
 import os
 
@@ -25,6 +26,7 @@ class PasscodeVerify(BaseModel):
 
 class PlayerCreate(BaseModel):
     name: str
+    password: str
 
 
 class PicksSubmit(BaseModel):
@@ -53,20 +55,30 @@ def startup():
     init_db()
 
 
+def _hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
+
 @app.post("/api/players")
 def create_player(player: PlayerCreate):
     name = player.name.strip()
     if not name:
         raise HTTPException(status_code=400, detail="Name cannot be empty")
+    if not player.password:
+        raise HTTPException(status_code=400, detail="Password cannot be empty")
+    password_hash = _hash_password(player.password)
     db = get_db()
     try:
-        cursor = db.execute("INSERT INTO players (name) VALUES (?)", (name,))
+        cursor = db.execute("INSERT INTO players (name, password_hash) VALUES (?, ?)", (name, password_hash))
         db.commit()
         player_id = cursor.lastrowid
     except Exception:
-        # Player already exists, return existing
-        row = db.execute("SELECT id, name FROM players WHERE name = ?", (name,)).fetchone()
+        # Player already exists — check password
+        row = db.execute("SELECT id, name, password_hash FROM players WHERE name = ?", (name,)).fetchone()
         if row:
+            if row["password_hash"] != password_hash:
+                db.close()
+                raise HTTPException(status_code=403, detail="Wrong password")
             db.close()
             return {"id": row["id"], "name": row["name"]}
         db.close()

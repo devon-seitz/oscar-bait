@@ -2,16 +2,18 @@ import React, { useState } from 'react';
 
 export default function Home({ onJoin, onViewLeaderboard }) {
   const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) { setError('Please enter your name'); return; }
+    if (!password) { setError('Please enter a password'); return; }
     setLoading(true);
     setError('');
     try {
-      await onJoin(name.trim());
+      await onJoin(name.trim(), password);
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -44,6 +46,15 @@ export default function Home({ onJoin, onViewLeaderboard }) {
             className="w-full px-5 py-4 bg-oscar-black gold-border-bright rounded-lg text-oscar-white placeholder-oscar-white/30 focus:outline-none focus:border-oscar-gold text-center text-lg font-sans transition-colors"
             maxLength={30}
             autoFocus
+          />
+        </div>
+        <div className="relative">
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Choose a password"
+            className="w-full px-5 py-4 bg-oscar-black gold-border-bright rounded-lg text-oscar-white placeholder-oscar-white/30 focus:outline-none focus:border-oscar-gold text-center text-lg font-sans transition-colors"
           />
         </div>
         {error && <p className="text-red-400 text-sm text-center">{error}</p>}
