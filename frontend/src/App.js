@@ -123,6 +123,12 @@ export default function App() {
     setPage('home');
   };
 
+  const handleAdminLogout = () => {
+    sessionStorage.removeItem('admin_passcode');
+    setIsAdmin(false);
+    setPage(player ? 'ballot' : 'home');
+  };
+
   const handleSubmitPick = async (category, rankings) => {
     await api.submitPicks(player.id, category, rankings);
     await refreshPicks();
@@ -183,6 +189,14 @@ export default function App() {
               >
                 <span className="hidden sm:inline">Switch Player</span>
                 <span className="sm:hidden">Switch</span>
+              </button>
+            )}
+            {isAdmin && !player && (
+              <button
+                onClick={handleAdminLogout}
+                className="px-2.5 sm:px-3 py-2 rounded text-sm font-medium text-oscar-white/40 hover:text-oscar-white/70 transition-colors min-h-[44px] flex items-center"
+              >
+                Logout
               </button>
             )}
           </div>
