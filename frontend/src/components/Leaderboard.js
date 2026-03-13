@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { api } from '../api';
 
-const TOTAL_CATEGORIES = 24;
+const TOTAL_CATEGORIES = 19;
 
 // ─── Helper: movement arrow ────────────────────────────────────────
 function MovementBadge({ currentRank, previousRank }) {

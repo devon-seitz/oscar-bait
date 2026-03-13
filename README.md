@@ -1,6 +1,6 @@
 # Oscar Bait
 
-A real-time Oscar predictions game. Players rank nominees across all 24 categories, lock in their picks, and compete on a live leaderboard as winners are announced.
+A real-time Oscar predictions game. Players rank nominees across all 19 categories, lock in their picks, and compete on a live leaderboard as winners are announced.
 
 ## How It Works
 

@@ -34,32 +34,12 @@ CATEGORIES = [
         "nominees": ["Arco", "Elio", "KPop Demon Hunters", "Little Amélie or the Character of Rain", "Zootopia 2"]
     },
     {
-        "name": "Best Animated Short",
-        "nominees": ["Butterfly", "Forevergreen", "The Girl Who Cried Pearls", "Retirement Plan", "The Three Sisters"]
-    },
-    {
         "name": "Best Adapted Screenplay",
         "nominees": ["Bugonia — Will Tracy", "Frankenstein — Guillermo del Toro", "Hamnet — Chloé Zhao & Maggie O'Farrell", "One Battle After Another — Paul Thomas Anderson", "Train Dreams — Clint Bentley & Greg Kwedar"]
     },
     {
         "name": "Best Original Screenplay",
         "nominees": ["Blue Moon — Robert Kaplow", "It Was Just an Accident — Jafar Panahi", "Marty Supreme — Ronald Bronstein & Josh Safdie", "Sentimental Value — Eskil Vogt & Joachim Trier", "Sinners — Ryan Coogler"]
-    },
-    {
-        "name": "Best International Feature Film",
-        "nominees": ["The Secret Agent — Brazil", "It Was Just an Accident — France", "Sentimental Value — Norway", "Sirāt — Spain", "The Voice of Hind Rajab — Tunisia"]
-    },
-    {
-        "name": "Best Documentary Feature",
-        "nominees": ["The Alabama Solution", "Come See Me in the Good Light", "Cutting Through Rocks", "Mr. Nobody Against Putin", "The Perfect Neighbor"]
-    },
-    {
-        "name": "Best Documentary Short",
-        "nominees": ["All the Empty Rooms", "Armed Only With a Camera: The Life and Death of Brent Renaud", "Children No More: Were and Are Gone", "The Devil Is Busy", "Perfectly a Strangeness"]
-    },
-    {
-        "name": "Best Live Action Short",
-        "nominees": ["Butcher's Stain", "A Friend of Dorothy", "Jane Austen's Period Drama", "The Singers", "Two People Exchanging Saliva"]
     },
     {
         "name": "Best Original Score",

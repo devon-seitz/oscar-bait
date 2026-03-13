@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Oscar Bait is a multiplayer Oscars prediction game for watch parties. Players stack-rank nominees in each of the 24 categories of the 98th Academy Awards (March 15, 2026). Points are awarded based on how high you ranked the actual winner. The app runs on a single server, containerized with Docker, designed for a single evening of use on a local network or simple cloud host.
+Oscar Bait is a multiplayer Oscars prediction game for watch parties. Players stack-rank nominees in each of the 19 categories of the 98th Academy Awards (March 15, 2026). Points are awarded based on how high you ranked the actual winner. The app runs on a single server, containerized with Docker, designed for a single evening of use on a local network or simple cloud host.
 
 This is a one-night game, not a SaaS product. Optimize for speed of development, reliability, and fun UX. Do not over-engineer.
 

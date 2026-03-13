@@ -242,7 +242,7 @@ def _compute_leaderboard_scores(db):
         total_score = 0
         for pick in pick_rows:
             cat_name = pick["category"]
-            if cat_name not in winners:
+            if cat_name not in winners or cat_name not in category_map:
                 continue
             rankings = json.loads(pick["rankings"])
             winner = winners[cat_name]
@@ -377,6 +377,8 @@ def get_leaderboard():
         categories_scored = 0
 
         for cat_name, winner in winners.items():
+            if cat_name not in category_map:
+                continue
             rankings = picks_by_cat.get(cat_name)
             num_nominees = len(category_map[cat_name]["nominees"])
 
@@ -527,6 +529,8 @@ def get_latest_announcement():
         # Total score across all announced categories
         total_score = 0
         for cat_name, cat_winner in winners_map.items():
+            if cat_name not in category_map:
+                continue
             cat_rankings = picks_by_cat.get(cat_name)
             if cat_rankings and cat_winner in cat_rankings:
                 pos = cat_rankings.index(cat_winner)
