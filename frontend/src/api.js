@@ -33,6 +33,8 @@ export const api = {
     request('/api/admin/clear-winner', { method: 'POST', body: JSON.stringify({ category, passcode }) }),
   deletePlayer: (playerId, passcode) =>
     request('/api/admin/delete-player', { method: 'POST', body: JSON.stringify({ player_id: playerId, passcode }) }),
+  resetPassword: (playerId, passcode) =>
+    request('/api/admin/reset-password', { method: 'POST', body: JSON.stringify({ player_id: playerId, passcode }) }),
   getCategories: () => request('/api/categories'),
   getLeaderboard: () => request('/api/leaderboard'),
   getLatestAnnouncement: () => request('/api/announcements/latest'),

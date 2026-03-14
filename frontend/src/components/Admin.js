@@ -8,6 +8,7 @@ export default function Admin({ categories, onRefresh, onAuthenticated }) {
   const [message, setMessage] = useState('');
   const [players, setPlayers] = useState([]);
   const [deleting, setDeleting] = useState({});
+  const [resetting, setResetting] = useState({});
 
   const refreshPlayers = async () => {
     try {
@@ -102,24 +103,43 @@ export default function Admin({ categories, onRefresh, onAuthenticated }) {
             {players.map(p => (
               <div key={p.id} className="flex items-center justify-between px-3 py-2 rounded bg-oscar-white/5">
                 <span className="text-sm text-oscar-white/80">{p.name}</span>
-                <button
-                  onClick={async () => {
-                    if (!window.confirm(`Delete "${p.name}" and all their picks?`)) return;
-                    setDeleting(prev => ({ ...prev, [p.id]: true }));
-                    try {
-                      await api.deletePlayer(p.id, passcode);
-                      setMessage(`Deleted player: ${p.name}`);
-                      refreshPlayers();
-                    } catch (err) {
-                      setMessage(`Error: ${err.message}`);
-                    }
-                    setDeleting(prev => ({ ...prev, [p.id]: false }));
-                  }}
-                  disabled={deleting[p.id]}
-                  className="px-3 py-2 rounded text-sm font-medium text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-50 min-h-[44px] flex items-center"
-                >
-                  {deleting[p.id] ? 'Deleting...' : 'Delete'}
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={async () => {
+                      if (!window.confirm(`Reset password for "${p.name}"? They'll set a new password on their next login.`)) return;
+                      setResetting(prev => ({ ...prev, [p.id]: true }));
+                      try {
+                        await api.resetPassword(p.id, passcode);
+                        setMessage(`Password reset for: ${p.name}`);
+                      } catch (err) {
+                        setMessage(`Error: ${err.message}`);
+                      }
+                      setResetting(prev => ({ ...prev, [p.id]: false }));
+                    }}
+                    disabled={resetting[p.id]}
+                    className="px-3 py-2 rounded text-sm font-medium text-oscar-gold/70 hover:bg-oscar-gold/10 transition-colors disabled:opacity-50 min-h-[44px] flex items-center"
+                  >
+                    {resetting[p.id] ? 'Resetting...' : 'Reset PW'}
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (!window.confirm(`Delete "${p.name}" and all their picks?`)) return;
+                      setDeleting(prev => ({ ...prev, [p.id]: true }));
+                      try {
+                        await api.deletePlayer(p.id, passcode);
+                        setMessage(`Deleted player: ${p.name}`);
+                        refreshPlayers();
+                      } catch (err) {
+                        setMessage(`Error: ${err.message}`);
+                      }
+                      setDeleting(prev => ({ ...prev, [p.id]: false }));
+                    }}
+                    disabled={deleting[p.id]}
+                    className="px-3 py-2 rounded text-sm font-medium text-red-400 hover:bg-red-400/10 transition-colors disabled:opacity-50 min-h-[44px] flex items-center"
+                  >
+                    {deleting[p.id] ? 'Deleting...' : 'Delete'}
+                  </button>
+                </div>
               </div>
             ))}
           </div>

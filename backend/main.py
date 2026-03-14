@@ -69,6 +69,11 @@ class PlayerDelete(BaseModel):
     passcode: str
 
 
+class PlayerResetPassword(BaseModel):
+    player_id: int
+    passcode: str
+
+
 class WinnerClear(BaseModel):
     category: str
     passcode: str
@@ -144,6 +149,13 @@ def create_player(request: Request, player: PlayerCreate):
         # Player already exists — check password
         row = db.execute("SELECT id, name, password_hash FROM players WHERE name = ?", (name,)).fetchone()
         if row:
+            # Password was reset by admin — accept whatever they provide as the new password
+            if row["password_hash"] is None:
+                new_hash = _hash_password(player.password)
+                db.execute("UPDATE players SET password_hash = ? WHERE id = ?", (new_hash, row["id"]))
+                db.commit()
+                db.close()
+                return {"id": row["id"], "name": row["name"], "token": _generate_token(row["id"], new_hash)}
             if not _check_password(player.password, row["password_hash"]):
                 db.close()
                 raise HTTPException(status_code=403, detail="Wrong password")
@@ -336,6 +348,23 @@ def delete_player(data: PlayerDelete):
     db.commit()
     db.close()
     return {"status": "ok", "deleted": name}
+
+
+@app.post("/api/admin/reset-password")
+def reset_password(data: PlayerResetPassword):
+    if not secrets.compare_digest(data.passcode, ADMIN_PASSCODE):
+        raise HTTPException(status_code=403, detail="Invalid passcode")
+
+    db = get_db()
+    player = db.execute("SELECT id, name FROM players WHERE id = ?", (data.player_id,)).fetchone()
+    if not player:
+        db.close()
+        raise HTTPException(status_code=404, detail="Player not found")
+
+    db.execute("UPDATE players SET password_hash = NULL WHERE id = ?", (data.player_id,))
+    db.commit()
+    db.close()
+    return {"status": "ok", "name": player["name"]}
 
 
 @app.get("/api/categories")
