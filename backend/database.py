@@ -86,6 +86,8 @@ CATEGORIES = [
     }
 ]
 
+BIG_4_CATEGORIES = ["Best Picture", "Best Director", "Best Actor", "Best Actress"]
+
 
 def get_db():
     conn = sqlite3.connect(DB_PATH)

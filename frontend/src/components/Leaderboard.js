@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { api } from '../api';
-
-const TOTAL_CATEGORIES = 19;
+import { BIG_4_CATEGORIES, TOTAL_CATEGORIES } from '../constants';
 
 // ─── Helper: movement arrow ────────────────────────────────────────
 function MovementBadge({ currentRank, previousRank }) {
@@ -29,13 +28,13 @@ function cardGlowClass(idx, hasScore) {
 }
 
 // ─── Stats Bar ─────────────────────────────────────────────────────
-function StatsBar({ data, announcedCount, totalCategories }) {
+function StatsBar({ data, announcedCount, totalCategories, scoreField = 'total_score' }) {
   if (data.length < 2 || announcedCount === 0) return null;
 
   // Closest race: smallest gap between adjacent players
   let closestGap = Infinity, closestPair = null;
   for (let i = 0; i < data.length - 1; i++) {
-    const gap = data[i].total_score - data[i + 1].total_score;
+    const gap = data[i][scoreField] - data[i + 1][scoreField];
     if (gap < closestGap) {
       closestGap = gap;
       closestPair = [data[i].name, data[i + 1].name];
@@ -45,7 +44,7 @@ function StatsBar({ data, announcedCount, totalCategories }) {
   // Biggest lead: largest gap between adjacent players
   let biggestGap = 0, biggestLeader = null, biggestTrailer = null;
   for (let i = 0; i < data.length - 1; i++) {
-    const gap = data[i].total_score - data[i + 1].total_score;
+    const gap = data[i][scoreField] - data[i + 1][scoreField];
     if (gap > biggestGap) {
       biggestGap = gap;
       biggestLeader = data[i].name;
@@ -371,6 +370,7 @@ export default function Leaderboard({ data: initialData, categories, currentPlay
   const [data, setData] = useState(initialData);
   const [isLive, setIsLive] = useState(true);
   const [flashIds, setFlashIds] = useState(new Set());
+  const [activeTab, setActiveTab] = useState('full');
   const prevDataRef = useRef(null);
 
   // Sync with prop data
@@ -389,7 +389,7 @@ export default function Leaderboard({ data: initialData, categories, currentPlay
           const changed = new Set();
           for (const player of lb) {
             const prev = prevDataRef.current.find(p => p.player_id === player.player_id);
-            if (!prev || prev.total_score !== player.total_score) {
+            if (!prev || prev.total_score !== player.total_score || prev.big4_score !== player.big4_score) {
               changed.add(player.player_id);
             }
           }
@@ -405,8 +405,23 @@ export default function Leaderboard({ data: initialData, categories, currentPlay
     return () => clearInterval(interval);
   }, [isLive]);
 
+  const scoreField = activeTab === 'big4' ? 'big4_score' : 'total_score';
   const announcedCategories = categories.filter(c => c.winner);
+  const big4AnnouncedCount = announcedCategories.filter(c => BIG_4_CATEGORIES.includes(c.name)).length;
+  const displayAnnouncedCount = activeTab === 'big4' ? big4AnnouncedCount : announcedCategories.length;
+  const displayTotalCategories = activeTab === 'big4' ? 4 : TOTAL_CATEGORIES;
+  const displayCategories = activeTab === 'big4'
+    ? categories.filter(c => BIG_4_CATEGORIES.includes(c.name))
+    : categories;
+
+  // Sort data by the active score field
+  const displayData = useMemo(() => {
+    if (activeTab === 'full') return data;
+    return [...data].sort((a, b) => (b.big4_score ?? 0) - (a.big4_score ?? 0) || a.name.localeCompare(b.name));
+  }, [data, activeTab]);
+
   const isFinal = announcedCategories.length >= TOTAL_CATEGORIES && data.length > 0;
+
 
   // Trigger confetti on final standings first load
   const confettiFired = useRef(false);
@@ -420,8 +435,8 @@ export default function Leaderboard({ data: initialData, categories, currentPlay
   return (
     <div className="fade-in-up">
       {/* Header */}
-      {isFinal ? (
-        <FinalStandingsHeader winner={data[0]} />
+      {isFinal && activeTab === 'full' ? (
+        <FinalStandingsHeader winner={displayData[0]} />
       ) : (
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -439,21 +454,46 @@ export default function Leaderboard({ data: initialData, categories, currentPlay
         </div>
       )}
 
+      {/* Tab Toggle */}
+      <div className="flex gap-1 mb-4 bg-oscar-white/5 rounded-lg p-1 w-fit">
+        <button
+          onClick={() => setActiveTab('full')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'full'
+              ? 'bg-oscar-gold/20 text-oscar-gold'
+              : 'text-oscar-white/50 hover:text-oscar-white/70'
+          }`}
+        >
+          Full Ballot
+        </button>
+        <button
+          onClick={() => setActiveTab('big4')}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === 'big4'
+              ? 'bg-oscar-gold/20 text-oscar-gold'
+              : 'text-oscar-white/50 hover:text-oscar-white/70'
+          }`}
+        >
+          Above the Title
+        </button>
+      </div>
+
       {/* Stats Bar */}
-      <StatsBar data={data} announcedCount={announcedCategories.length} totalCategories={TOTAL_CATEGORIES} />
+      <StatsBar data={displayData} announcedCount={displayAnnouncedCount} totalCategories={displayTotalCategories} scoreField={scoreField} />
 
       {/* Player List */}
-      {data.length === 0 ? (
+      {displayData.length === 0 ? (
         <div className="text-center py-16 text-oscar-white/40">
           <p className="font-serif text-xl mb-2">No players yet</p>
           <p className="text-sm">Waiting for players to join...</p>
         </div>
       ) : (
         <div className="space-y-0">
-          {data.map((player, idx) => {
+          {displayData.map((player, idx) => {
             const isExpanded = expandedPlayer === player.player_id;
             const isTop3 = idx < 3;
-            const hasScore = player.total_score > 0;
+            const playerScore = player[scoreField] ?? 0;
+            const hasScore = playerScore > 0;
             const isFlashing = flashIds.has(player.player_id);
             const isCurrentPlayer = currentPlayerName && player.name === currentPlayerName;
 
@@ -461,13 +501,13 @@ export default function Leaderboard({ data: initialData, categories, currentPlay
               <React.Fragment key={player.player_id}>
                 {/* Gap indicator between cards */}
                 {idx > 0 && (
-                  <GapIndicator scoreAbove={data[idx - 1].total_score} scoreBelow={player.total_score} />
+                  <GapIndicator scoreAbove={displayData[idx - 1][scoreField] ?? 0} scoreBelow={playerScore} />
                 )}
 
                 <div
                   className={`rounded-lg overflow-hidden transition-all ${cardGlowClass(idx, hasScore)} ${
                     isFlashing ? 'card-flash' : ''
-                  } ${isFinal && idx === 0 ? 'final-winner-card' : ''}`}
+                  } ${isFinal && idx === 0 && activeTab === 'full' ? 'final-winner-card' : ''}`}
                 >
                   <button
                     onClick={() => setExpandedPlayer(isExpanded ? null : player.player_id)}
@@ -488,13 +528,35 @@ export default function Leaderboard({ data: initialData, categories, currentPlay
                           }`}>
                             {player.name}
                           </span>
-                          <MovementBadge currentRank={idx + 1} previousRank={player.previous_rank} />
+                          {player.is_completionist && (
+                            <span
+                              className="ml-1.5 flex-shrink-0 text-oscar-gold"
+                              title={`${player.name} picked all ${TOTAL_CATEGORIES} categories — a true Hollywood star`}
+                            >
+                              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 0l3.09 6.26L22 7.27l-5 4.87 1.18 6.88L12 15.4l-6.18 3.62L7 12.14 2 7.27l6.91-1.01L12 0z"/>
+                              </svg>
+                            </span>
+                          )}
+                          {activeTab === 'full' && <MovementBadge currentRank={idx + 1} previousRank={player.previous_rank} />}
                         </div>
-                        {announcedCategories.length > 0 ? (
+                        {announcedCategories.length > 0 && activeTab === 'full' ? (
                           <PlayerSummary player={player} />
+                        ) : announcedCategories.length > 0 && activeTab === 'big4' ? (
+                          <div className="text-xs text-oscar-white/40 mt-0.5">
+                            {(() => {
+                              const big4Picked = player.picks_detail
+                                ? BIG_4_CATEGORIES.filter(c => player.picks_detail[c]?.has_picks).length
+                                : 0;
+                              return `Ranked ${big4Picked} of 4 categories`;
+                            })()}
+                          </div>
                         ) : player.picks_detail && (
                           <div className="text-xs text-oscar-white/40 mt-0.5">
-                            {Object.values(player.picks_detail).filter(d => d.has_picks).length} of {TOTAL_CATEGORIES} categories picked
+                            {activeTab === 'big4'
+                              ? `${BIG_4_CATEGORIES.filter(c => player.picks_detail[c]?.has_picks).length} of 4 categories picked`
+                              : `${Object.values(player.picks_detail).filter(d => d.has_picks).length} of ${TOTAL_CATEGORIES} categories picked`
+                            }
                           </div>
                         )}
                       </div>
@@ -505,7 +567,7 @@ export default function Leaderboard({ data: initialData, categories, currentPlay
                           <span className={`font-serif text-2xl font-bold ${
                             idx === 0 && hasScore ? 'gold-text-gradient' : 'text-oscar-white/80'
                           }`}>
-                            {player.total_score}
+                            {playerScore}
                           </span>
                           <span className="text-oscar-white/30 text-xs ml-1">pts</span>
                         </div>
@@ -520,7 +582,7 @@ export default function Leaderboard({ data: initialData, categories, currentPlay
                   </button>
 
                   {/* Expanded detail */}
-                  {isExpanded && <ExpandedDetail player={player} categories={categories} />}
+                  {isExpanded && <ExpandedDetail player={player} categories={displayCategories} />}
                 </div>
               </React.Fragment>
             );
@@ -529,7 +591,7 @@ export default function Leaderboard({ data: initialData, categories, currentPlay
       )}
 
       {/* Game Summary (final mode only) */}
-      {isFinal && <GameSummary data={data} categories={categories} />}
+      {isFinal && activeTab === 'full' && <GameSummary data={data} categories={categories} />}
     </div>
   );
 }

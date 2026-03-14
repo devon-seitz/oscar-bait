@@ -17,6 +17,7 @@ import {
 } from '@dnd-kit/sortable';
 import SortableNominee from './SortableNominee';
 import BottomSheet from './BottomSheet';
+import { BIG_4_CATEGORIES } from '../constants';
 
 export default function Ballot({ categories, picks, leaderboard, player, onSubmitPick, descriptions }) {
   const [openCategory, setOpenCategory] = useState(null);
@@ -27,6 +28,7 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
   const [celebratingCats, setCelebratingCats] = useState({});
   const [infoSheet, setInfoSheet] = useState(null);
   const [scoutingSheet, setScoutingSheet] = useState(null);
+  const [showFullCast, setShowFullCast] = useState(true);
   const categoryRefs = useRef({});
 
   const sensors = useSensors(
@@ -44,6 +46,10 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
   const completedCount = categories.filter(cat =>
     picks[cat.name]?.rankings?.length > 0
   ).length;
+
+  const big4Cats = categories.filter(cat => BIG_4_CATEGORIES.includes(cat.name));
+  const fullCastCats = categories.filter(cat => !BIG_4_CATEGORIES.includes(cat.name));
+  const big4Completed = big4Cats.filter(cat => picks[cat.name]?.rankings?.length > 0).length;
 
   // Compute personal score stats from leaderboard data
   const myEntry = leaderboard.find(e => e.player_id === player?.id);
@@ -149,6 +155,153 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
   };
 
 
+  const renderCategoryCard = (cat, isBig4) => {
+    const isOpen = openCategory === cat.name;
+    const hasPicks = picks[cat.name]?.rankings?.length > 0;
+    const rankings = getRankings(cat.name, cat.nominees);
+    const isSaving = saving[cat.name];
+    const isCelebrating = celebratingCats[cat.name];
+    const catPoints = getCategoryPoints(cat);
+
+    return (
+      <div key={cat.name} ref={el => categoryRefs.current[cat.name] = el} style={{ scrollMarginTop: '60px' }} className={`rounded-lg overflow-hidden transition-all ${
+        isBig4 ? 'border-l-2 border-l-oscar-gold ' : ''
+      }${isCelebrating ? 'card-celebrate gold-border-bright' : 'gold-border'}`}>
+        {/* Category header */}
+        <button
+          onClick={() => {
+            const opening = !isOpen;
+            setOpenCategory(isOpen ? null : cat.name);
+            if (opening) {
+              setTimeout(() => {
+                categoryRefs.current[cat.name]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, 50);
+            }
+          }}
+          className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-oscar-gold/5 transition-colors"
+        >
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-3">
+              {cat.winner ? (
+                <span className="w-3 h-3 rounded-full flex-shrink-0 gold-gradient shadow-[0_0_6px_rgba(197,164,78,0.4)]" />
+              ) : hasPicks ? (
+                <span className="w-3 h-3 rounded-full flex-shrink-0 gold-gradient opacity-80" />
+              ) : (
+                <span className="w-3 h-3 rounded-full flex-shrink-0 border border-oscar-white/20" />
+              )}
+              <span className="font-serif text-base sm:text-lg font-semibold text-oscar-white text-left truncate">{cat.name}</span>
+            </div>
+            {cat.winner && (
+              <div className="flex items-center gap-2 mt-1 ml-5 sm:ml-6">
+                <span className={`text-xs text-oscar-gold bg-oscar-gold/10 px-2 py-0.5 rounded-full truncate ${
+                  isCelebrating ? 'badge-slide-in' : ''
+                }`}>
+                  {cat.winner}
+                </span>
+                <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
+                  isCelebrating ? 'points-count-up' : ''
+                } ${
+                  catPoints === cat.nominees.length
+                    ? 'bg-green-500/20 text-green-400'
+                    : 'bg-oscar-white/10 text-oscar-white/50'
+                }`}>
+                  {isCelebrating ? (
+                    <AnimatedPoints target={catPoints ?? 0} />
+                  ) : (
+                    `+${catPoints ?? 0} pts`
+                  )}
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {isSaving && <span className="text-xs text-oscar-gold/50">Saving...</span>}
+            <svg
+              className={`w-5 h-5 text-oscar-white/40 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
+            </svg>
+          </div>
+        </button>
+
+        {/* Nominees list */}
+        {isOpen && (
+          <div className="pb-4 pt-1 border-t border-oscar-gold/10" style={{ paddingLeft: 12, paddingRight: 36 }}>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs text-oscar-white/40">
+                {cat.nominees.length} nominees — top pick earns {cat.nominees.length} pts
+              </p>
+              {descriptions[cat.name] && Object.keys(descriptions[cat.name]).length > 0 && (
+                <button
+                  onClick={() => {
+                    const catDescs = descriptions[cat.name];
+                    const entries = rankings
+                      .filter(n => catDescs[n])
+                      .map(n => ({ name: n, description: catDescs[n] }));
+                    setScoutingSheet({ categoryName: cat.name, entries });
+                  }}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors flex-shrink-0"
+                  style={{ borderColor: '#A68A3E', color: '#A68A3E' }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#A68A3E';
+                    e.currentTarget.style.color = '#0A0A0A';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#A68A3E';
+                  }}
+                >
+                  <span>📋</span> Scouting Report
+                </button>
+              )}
+            </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={(e) => handleDragEnd(e, cat.name, cat.nominees)}
+            >
+              <SortableContext items={rankings} strategy={verticalListSortingStrategy}>
+                {rankings.map((nominee, index) => (
+                  <SortableNominee
+                    key={nominee}
+                    id={nominee}
+                    index={index}
+                    totalNominees={cat.nominees.length}
+                    disabled={false}
+                    description={descriptions[cat.name]?.[nominee]}
+                    onInfoClick={() => {
+                      const desc = descriptions[cat.name]?.[nominee];
+                      if (desc) setInfoSheet({ name: nominee, description: desc });
+                    }}
+                  />
+                ))}
+              </SortableContext>
+              <DragOverlay>
+                {activeId ? (
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-oscar-black gold-border-bright drag-overlay">
+                    <span className="text-sm text-oscar-white">{activeId}</span>
+                  </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
+            <button
+              type="button"
+              data-1p-ignore
+              onClick={() => handleSaveCategory(cat.name, cat.nominees)}
+              disabled={isSaving}
+              className="w-full mt-3 py-2.5 rounded-lg text-sm font-semibold transition-all gold-border-bright text-oscar-gold hover:bg-oscar-gold/10 disabled:opacity-50"
+            >
+              {isSaving ? 'Saving...' : saved[cat.name] ? '✓ Saved' : 'Save Picks'}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="fade-in-up">
       {/* Header */}
@@ -218,6 +371,7 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
       <div className="mb-6">
         <div className="flex justify-between text-sm mb-2">
           <span className="text-oscar-white/60">{completedCount} of {categories.length} categories ranked</span>
+          <span className="text-oscar-gold text-xs">{big4Completed}/4 Above the Title</span>
         </div>
         <div className="h-1.5 bg-oscar-white/10 rounded-full overflow-hidden">
           <div
@@ -229,155 +383,34 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
 
       {/* Categories */}
       <div className="space-y-2">
-        {categories.map((cat) => {
-          const isOpen = openCategory === cat.name;
-          const hasPicks = picks[cat.name]?.rankings?.length > 0;
-          const rankings = getRankings(cat.name, cat.nominees);
-          const isSaving = saving[cat.name];
+        {/* Above the Title — Big 4 */}
+        <div className="mb-2">
+          <h2 className="font-serif text-xl font-bold gold-text-gradient mb-0.5">Above the Title</h2>
+          <p className="text-oscar-white/40 text-sm mb-3">The Big 4</p>
+        </div>
+        {big4Cats.map((cat) => renderCategoryCard(cat, true))}
 
-          const isCelebrating = celebratingCats[cat.name];
-          const catPoints = getCategoryPoints(cat);
+        {/* Divider */}
+        <div className="my-6 border-t border-oscar-gold/20" />
 
-          return (
-            <div key={cat.name} ref={el => categoryRefs.current[cat.name] = el} style={{ scrollMarginTop: '60px' }} className={`rounded-lg overflow-hidden transition-all ${
-              isCelebrating ? 'card-celebrate gold-border-bright' : 'gold-border'
-            }`}>
-              {/* Category header */}
-              <button
-                onClick={() => {
-                  const opening = !isOpen;
-                  setOpenCategory(isOpen ? null : cat.name);
-                  if (opening) {
-                    setTimeout(() => {
-                      categoryRefs.current[cat.name]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }, 50);
-                  }
-                }}
-                className="w-full flex items-center justify-between px-4 py-3.5 hover:bg-oscar-gold/5 transition-colors"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    {cat.winner ? (
-                      <span className="w-3 h-3 rounded-full flex-shrink-0 gold-gradient shadow-[0_0_6px_rgba(197,164,78,0.4)]" />
-                    ) : hasPicks ? (
-                      <span className="w-3 h-3 rounded-full flex-shrink-0 gold-gradient opacity-80" />
-                    ) : (
-                      <span className="w-3 h-3 rounded-full flex-shrink-0 border border-oscar-white/20" />
-                    )}
-                    <span className="font-serif text-base sm:text-lg font-semibold text-oscar-white text-left truncate">{cat.name}</span>
-                  </div>
-                  {cat.winner && (
-                    <div className="flex items-center gap-2 mt-1 ml-5 sm:ml-6">
-                      <span className={`text-xs text-oscar-gold bg-oscar-gold/10 px-2 py-0.5 rounded-full truncate ${
-                        isCelebrating ? 'badge-slide-in' : ''
-                      }`}>
-                        {cat.winner}
-                      </span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full flex-shrink-0 ${
-                        isCelebrating ? 'points-count-up' : ''
-                      } ${
-                        catPoints === cat.nominees.length
-                          ? 'bg-green-500/20 text-green-400'
-                          : 'bg-oscar-white/10 text-oscar-white/50'
-                      }`}>
-                        {isCelebrating ? (
-                          <AnimatedPoints target={catPoints ?? 0} />
-                        ) : (
-                          `+${catPoints ?? 0} pts`
-                        )}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  {isSaving && <span className="text-xs text-oscar-gold/50">Saving...</span>}
-                  <svg
-                    className={`w-5 h-5 text-oscar-white/40 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
-                  </svg>
-                </div>
-              </button>
-
-              {/* Nominees list */}
-              {isOpen && (
-                <div className="pb-4 pt-1 border-t border-oscar-gold/10" style={{ paddingLeft: 12, paddingRight: 36 }}>
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-xs text-oscar-white/40">
-                      {cat.nominees.length} nominees — top pick earns {cat.nominees.length} pts
-                    </p>
-                    {descriptions[cat.name] && Object.keys(descriptions[cat.name]).length > 0 && (
-                      <button
-                        onClick={() => {
-                          const catDescs = descriptions[cat.name];
-                          const entries = rankings
-                            .filter(n => catDescs[n])
-                            .map(n => ({ name: n, description: catDescs[n] }));
-                          setScoutingSheet({ categoryName: cat.name, entries });
-                        }}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors flex-shrink-0"
-                        style={{ borderColor: '#A68A3E', color: '#A68A3E' }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#A68A3E';
-                          e.currentTarget.style.color = '#0A0A0A';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                          e.currentTarget.style.color = '#A68A3E';
-                        }}
-                      >
-                        <span>📋</span> Scouting Report
-                      </button>
-                    )}
-                  </div>
-                  <DndContext
-                    sensors={sensors}
-                    collisionDetection={closestCenter}
-                    onDragStart={handleDragStart}
-                    onDragEnd={(e) => handleDragEnd(e, cat.name, cat.nominees)}
-                  >
-                    <SortableContext items={rankings} strategy={verticalListSortingStrategy}>
-                      {rankings.map((nominee, index) => (
-                        <SortableNominee
-                          key={nominee}
-                          id={nominee}
-                          index={index}
-                          totalNominees={cat.nominees.length}
-                          disabled={false}
-                          description={descriptions[cat.name]?.[nominee]}
-                          onInfoClick={() => {
-                            const desc = descriptions[cat.name]?.[nominee];
-                            if (desc) setInfoSheet({ name: nominee, description: desc });
-                          }}
-                        />
-                      ))}
-                    </SortableContext>
-                    <DragOverlay>
-                      {activeId ? (
-                        <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-oscar-black gold-border-bright drag-overlay">
-                          <span className="text-sm text-oscar-white">{activeId}</span>
-                        </div>
-                      ) : null}
-                    </DragOverlay>
-                  </DndContext>
-                  {(
-                    <button
-                      type="button"
-                      data-1p-ignore
-                      onClick={() => handleSaveCategory(cat.name, cat.nominees)}
-                      disabled={isSaving}
-                      className="w-full mt-3 py-2.5 rounded-lg text-sm font-semibold transition-all gold-border-bright text-oscar-gold hover:bg-oscar-gold/10 disabled:opacity-50"
-                    >
-                      {isSaving ? 'Saving...' : saved[cat.name] ? '✓ Saved' : 'Save Picks'}
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {/* The Full Cast — Remaining categories */}
+        <div className="mb-2">
+          <button
+            onClick={() => setShowFullCast(prev => !prev)}
+            className="flex items-center gap-2 group"
+          >
+            <h2 className="font-serif text-xl font-bold text-oscar-white/80 mb-0.5">The Full Cast</h2>
+            <svg
+              className={`w-5 h-5 text-oscar-white/40 transition-transform ${showFullCast ? 'rotate-180' : ''}`}
+              viewBox="0 0 24 24"
+              fill="currentColor"
+            >
+              <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z"/>
+            </svg>
+          </button>
+          <p className="text-oscar-white/40 text-sm mb-3">{fullCastCats.length} more categories</p>
+        </div>
+        {showFullCast && fullCastCats.map((cat) => renderCategoryCard(cat, false))}
       </div>
 
       {/* Single nominee info sheet */}

@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from database import get_db, init_db, CATEGORIES
+from database import get_db, init_db, CATEGORIES, BIG_4_CATEGORIES
 from starlette.middleware.base import BaseHTTPMiddleware
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -378,6 +378,7 @@ def get_leaderboard():
         picks_by_cat = {r["category"]: json.loads(r["rankings"]) for r in pick_rows}
 
         total_score = 0
+        big4_score = 0
         category_scores = {}
         best_pick = None
         worst_pick = None
@@ -406,6 +407,8 @@ def get_leaderboard():
                 "rankings": rankings or []
             }
             total_score += points
+            if cat_name in BIG_4_CATEGORIES:
+                big4_score += points
 
             if rankings and winner in rankings:
                 categories_scored += 1
@@ -468,10 +471,16 @@ def get_leaderboard():
         if worst_pick:
             del worst_pick["num_nominees"]
 
+        categories_picked = len([c for c in CATEGORIES if c["name"] in picks_by_cat])
+        is_completionist = categories_picked == len(CATEGORIES)
+
         leaderboard.append({
             "player_id": player["id"],
             "name": player["name"],
             "total_score": total_score,
+            "big4_score": big4_score,
+            "is_completionist": is_completionist,
+            "categories_picked": categories_picked,
             "previous_rank": prev_ranks.get(player["id"]),
             "category_scores": category_scores,
             "best_pick": best_pick,
