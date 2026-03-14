@@ -40,7 +40,7 @@ export default function Home({ onJoin, onViewLeaderboard }) {
         The 98th Academy Awards prediction game. Rank the nominees. Win the party.
       </p>
 
-      <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
+      <form onSubmit={handleSubmit} autoComplete="off" className="w-full max-w-sm space-y-4">
         <div className="relative">
           <input
             type="text"
@@ -50,15 +50,22 @@ export default function Home({ onJoin, onViewLeaderboard }) {
             className="w-full px-5 py-4 bg-oscar-black gold-border-bright rounded-lg text-oscar-white placeholder-oscar-white/30 focus:outline-none focus:border-oscar-gold text-center text-lg font-sans transition-colors"
             maxLength={30}
             autoFocus
+            autoComplete="off"
+            data-1p-ignore
+            data-lpignore="true"
           />
         </div>
         <div className="relative">
           <input
-            type="password"
+            type="text"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Choose a password"
             className="w-full px-5 py-4 bg-oscar-black gold-border-bright rounded-lg text-oscar-white placeholder-oscar-white/30 focus:outline-none focus:border-oscar-gold text-center text-lg font-sans transition-colors"
+            autoComplete="off"
+            data-1p-ignore
+            data-lpignore="true"
+            style={{WebkitTextSecurity: 'disc'}}
           />
         </div>
         {error && <p className="text-red-400 text-sm text-center">{error}</p>}

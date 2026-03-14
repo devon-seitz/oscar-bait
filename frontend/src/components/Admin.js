@@ -56,14 +56,18 @@ export default function Admin({ categories, onRefresh, onAuthenticated }) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] fade-in-up">
         <h1 className="font-serif text-3xl font-bold text-oscar-white mb-6">Admin Panel</h1>
-        <form onSubmit={handleAuth} className="w-full max-w-xs space-y-4">
+        <form onSubmit={handleAuth} autoComplete="off" className="w-full max-w-xs space-y-4">
           <input
-            type="password"
+            type="text"
             value={passcode}
             onChange={(e) => setPasscode(e.target.value)}
             placeholder="Enter admin passcode"
             className="w-full px-4 py-3 bg-oscar-black gold-border rounded-lg text-oscar-white placeholder-oscar-white/30 focus:outline-none focus:border-oscar-gold text-center"
             autoFocus
+            autoComplete="off"
+            data-1p-ignore
+            data-lpignore="true"
+            style={{WebkitTextSecurity: 'disc'}}
           />
           {message && <p className="text-red-400 text-sm text-center">{message}</p>}
           <button
