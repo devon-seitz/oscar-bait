@@ -9,6 +9,56 @@ export default function About() {
 
       <div className="space-y-6 text-oscar-white/80 font-sans leading-relaxed">
         <div className="gold-border rounded-lg p-6 bg-oscar-gold/5">
+          <h2 className="font-serif text-xl font-semibold text-oscar-gold mb-3">How to Play</h2>
+          <div className="space-y-4">
+            <p>
+              <strong className="text-oscar-gold">Rank your picks</strong> — Drag nominees to rank them in each category. Your #1 pick is who you think will win.
+            </p>
+            <div>
+              <p className="mb-2">
+                <strong className="text-oscar-gold">Scoring</strong> — The higher you rank the actual winner, the more points you earn.
+              </p>
+              <div className="rounded-lg overflow-hidden" style={{ border: '1px solid rgba(197, 164, 78, 0.2)' }}>
+                <div className="px-4 py-2 text-xs font-sans font-medium text-oscar-white/40 flex justify-between" style={{ background: 'rgba(197, 164, 78, 0.08)' }}>
+                  <span>Your Rank</span>
+                  <span>Points Earned</span>
+                </div>
+                {[
+                  { rank: '#1 pick', pts: '5 pts', highlight: true },
+                  { rank: '#2 pick', pts: '4 pts', highlight: false },
+                  { rank: '#3 pick', pts: '3 pts', highlight: false },
+                  { rank: '#4 pick', pts: '2 pts', highlight: false },
+                  { rank: '#5 pick', pts: '1 pt', highlight: false },
+                ].map((row, i) => (
+                  <div
+                    key={row.rank}
+                    className="px-4 py-1.5 flex justify-between items-center text-sm"
+                    style={{ background: i % 2 === 0 ? '#141414' : '#1A1A1A' }}
+                  >
+                    <span className="text-oscar-white/70 font-sans">
+                      {row.highlight && <span className="mr-1.5">🎯</span>}
+                      {row.rank}
+                    </span>
+                    <span className="font-bold font-serif" style={{ color: row.highlight ? '#C5A44E' : 'rgba(197, 164, 78, 0.6)' }}>
+                      {row.pts}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-oscar-white/40 text-xs mt-2">
+                Example for a category with 5 nominees. Points scale with the number of nominees.
+              </p>
+            </div>
+            <p>
+              <strong className="text-oscar-gold">Scouting Reports</strong> — Haven't seen everything? Tap the Scouting Report button on any category for quick takes on each nominee.
+            </p>
+            <p>
+              <strong className="text-oscar-gold">On Oscar Night</strong> — When winners are announced live, a dramatic reveal plays for each category. The leaderboard shifts in real time — watch your rank climb as results come in.
+            </p>
+          </div>
+        </div>
+
+        <div className="gold-border rounded-lg p-6 bg-oscar-gold/5">
           <h2 className="font-serif text-xl font-semibold text-oscar-gold mb-3">The Origin Story</h2>
           <p>
             This is a game my family started back when we were young. Every year, we would watch the Oscars together and try to pick the winners.

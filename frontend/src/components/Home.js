@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
+import BottomSheet from './BottomSheet';
 
 export default function Home({ onJoin, onViewLeaderboard }) {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -78,16 +80,93 @@ export default function Home({ onJoin, onViewLeaderboard }) {
         </button>
       </form>
 
-      <button
-        onClick={onViewLeaderboard}
-        className="mt-6 text-oscar-gold/60 hover:text-oscar-gold text-sm transition-colors"
-      >
-        View Leaderboard →
-      </button>
+      <div className="mt-6 flex items-center gap-4">
+        <button
+          onClick={() => setShowHowToPlay(true)}
+          className="text-oscar-gold/60 hover:text-oscar-gold text-sm transition-colors"
+        >
+          How to Play
+        </button>
+        <span className="text-oscar-white/20">|</span>
+        <button
+          onClick={onViewLeaderboard}
+          className="text-oscar-gold/60 hover:text-oscar-gold text-sm transition-colors"
+        >
+          View Leaderboard →
+        </button>
+      </div>
 
       <p className="mt-16 text-oscar-white/20 text-xs">
         March 15, 2026 — 98th Academy Awards
       </p>
+
+      {/* How to Play modal */}
+      <BottomSheet
+        isOpen={showHowToPlay}
+        onClose={() => setShowHowToPlay(false)}
+        maxHeight="85vh"
+        title="How to Play"
+      >
+        <div className="space-y-5">
+          <div>
+            <h4 className="font-serif font-semibold text-base mb-2" style={{ color: '#C5A44E' }}>Rank Your Picks</h4>
+            <p style={{ color: '#E0E0E0', fontSize: '0.95rem', lineHeight: 1.6, margin: 0 }}>
+              Drag nominees to rank them in each category. Your #1 pick is who you think will win.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="font-serif font-semibold text-base mb-2" style={{ color: '#C5A44E' }}>Scoring</h4>
+            <p style={{ color: '#E0E0E0', fontSize: '0.95rem', lineHeight: 1.6, margin: 0, marginBottom: 8 }}>
+              The higher you rank the actual winner, the more points you earn.
+            </p>
+            <div className="rounded-lg overflow-hidden" style={{ border: '1px solid rgba(197, 164, 78, 0.2)' }}>
+              <div className="px-4 py-2 text-xs font-sans font-medium text-oscar-white/40 flex justify-between" style={{ background: 'rgba(197, 164, 78, 0.08)' }}>
+                <span>Your Rank</span>
+                <span>Points Earned</span>
+              </div>
+              {[
+                { rank: '#1 pick', pts: '5 pts', highlight: true },
+                { rank: '#2 pick', pts: '4 pts', highlight: false },
+                { rank: '#3 pick', pts: '3 pts', highlight: false },
+                { rank: '#4 pick', pts: '2 pts', highlight: false },
+                { rank: '#5 pick', pts: '1 pt', highlight: false },
+              ].map((row, i) => (
+                <div
+                  key={row.rank}
+                  className="px-4 py-1.5 flex justify-between items-center text-sm"
+                  style={{ background: i % 2 === 0 ? '#141414' : '#1A1A1A' }}
+                >
+                  <span className="text-oscar-white/70 font-sans">
+                    {row.highlight && <span className="mr-1.5">🎯</span>}
+                    {row.rank}
+                  </span>
+                  <span className="font-bold font-serif" style={{ color: row.highlight ? '#C5A44E' : 'rgba(197, 164, 78, 0.6)' }}>
+                    {row.pts}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="text-oscar-white/40 text-xs mt-2">
+              Example for a category with 5 nominees. Points scale with the number of nominees.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="font-serif font-semibold text-base mb-2" style={{ color: '#C5A44E' }}>Scouting Reports</h4>
+            <p style={{ color: '#E0E0E0', fontSize: '0.95rem', lineHeight: 1.6, margin: 0 }}>
+              Haven't seen everything? Tap the <span style={{ color: '#C5A44E' }}>Scouting Report</span> button on any category for quick takes on each nominee.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="font-serif font-semibold text-base mb-2" style={{ color: '#C5A44E' }}>On Oscar Night</h4>
+            <p style={{ color: '#E0E0E0', fontSize: '0.95rem', lineHeight: 1.6, margin: 0 }}>
+              When winners are announced live, a dramatic reveal plays for each category. The leaderboard shifts in real time — watch your rank climb as results come in.
+            </p>
+          </div>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

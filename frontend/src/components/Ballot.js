@@ -28,6 +28,7 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
   const [celebratingCats, setCelebratingCats] = useState({});
   const [infoSheet, setInfoSheet] = useState(null);
   const [scoutingSheet, setScoutingSheet] = useState(null);
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
   const [showFullCast, setShowFullCast] = useState(true);
   const categoryRefs = useRef({});
 
@@ -306,10 +307,27 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
     <div className="fade-in-up">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="font-serif text-3xl font-bold text-oscar-white mb-2">Your Ballot</h1>
-        <p className="text-oscar-white/50 text-sm">
-          Drag to rank nominees in each category. #1 = most likely to win.
-        </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="font-serif text-3xl font-bold text-oscar-white mb-2">Your Ballot</h1>
+            <p className="text-oscar-white/50 text-sm">
+              Drag to rank nominees in each category. #1 = most likely to win.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowHowToPlay(true)}
+            className="flex-shrink-0 ml-3 mt-1 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors"
+            style={{ borderColor: 'rgba(197, 164, 78, 0.4)', color: '#C5A44E' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'rgba(197, 164, 78, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
+            <span>?</span> How to Play
+          </button>
+        </div>
       </div>
 
       {/* Mini Scoreboard */}
@@ -423,6 +441,74 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
         <p style={{ color: '#E0E0E0', fontSize: '0.95rem', lineHeight: 1.6, margin: 0 }}>
           {infoSheet?.description}
         </p>
+      </BottomSheet>
+
+      {/* How to Play sheet */}
+      <BottomSheet
+        isOpen={showHowToPlay}
+        onClose={() => setShowHowToPlay(false)}
+        maxHeight="85vh"
+        title="How to Play"
+      >
+        <div className="space-y-5">
+          <div>
+            <h4 className="font-serif font-semibold text-base mb-2" style={{ color: '#C5A44E' }}>Rank Your Picks</h4>
+            <p style={{ color: '#E0E0E0', fontSize: '0.95rem', lineHeight: 1.6, margin: 0 }}>
+              Drag nominees to rank them in each category. Your #1 pick is who you think will win.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="font-serif font-semibold text-base mb-2" style={{ color: '#C5A44E' }}>Scoring</h4>
+            <p style={{ color: '#E0E0E0', fontSize: '0.95rem', lineHeight: 1.6, margin: 0, marginBottom: 8 }}>
+              The higher you rank the actual winner, the more points you earn.
+            </p>
+            <div className="rounded-lg overflow-hidden" style={{ border: '1px solid rgba(197, 164, 78, 0.2)' }}>
+              <div className="px-4 py-2 text-xs font-sans font-medium text-oscar-white/40 flex justify-between" style={{ background: 'rgba(197, 164, 78, 0.08)' }}>
+                <span>Your Rank</span>
+                <span>Points Earned</span>
+              </div>
+              {[
+                { rank: '#1 pick', pts: '5 pts', highlight: true },
+                { rank: '#2 pick', pts: '4 pts', highlight: false },
+                { rank: '#3 pick', pts: '3 pts', highlight: false },
+                { rank: '#4 pick', pts: '2 pts', highlight: false },
+                { rank: '#5 pick', pts: '1 pt', highlight: false },
+              ].map((row, i) => (
+                <div
+                  key={row.rank}
+                  className="px-4 py-1.5 flex justify-between items-center text-sm"
+                  style={{ background: i % 2 === 0 ? '#141414' : '#1A1A1A' }}
+                >
+                  <span className="text-oscar-white/70 font-sans">
+                    {row.highlight && <span className="mr-1.5">🎯</span>}
+                    {row.rank}
+                  </span>
+                  <span className="font-bold font-serif" style={{ color: row.highlight ? '#C5A44E' : 'rgba(197, 164, 78, 0.6)' }}>
+                    {row.pts}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="text-oscar-white/40 text-xs mt-2">
+              Example for a category with 5 nominees. Points scale with the number of nominees.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="font-serif font-semibold text-base mb-2" style={{ color: '#C5A44E' }}>Scouting Reports</h4>
+            <p style={{ color: '#E0E0E0', fontSize: '0.95rem', lineHeight: 1.6, margin: 0 }}>
+              Haven't seen everything? Tap the <span style={{ color: '#C5A44E' }}>Scouting Report</span> button on any category for quick takes on each nominee.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="font-serif font-semibold text-base mb-2" style={{ color: '#C5A44E' }}>On Oscar Night</h4>
+            <p style={{ color: '#E0E0E0', fontSize: '0.95rem', lineHeight: 1.6, margin: 0 }}>
+              When winners are announced live, a dramatic reveal plays for each category. The leaderboard shifts in real time — watch your rank climb as results come in.
+            </p>
+          </div>
+        </div>
       </BottomSheet>
 
       {/* Full category scouting report sheet */}
