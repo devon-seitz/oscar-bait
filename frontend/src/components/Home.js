@@ -23,8 +23,14 @@ export default function Home({ onJoin, onViewLeaderboard }) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] fade-in-up">
       {/* Logo */}
-      <div className="mb-6">
-        <img src="/logo.png" alt="Oscar Bait" className="w-24 h-32 object-contain" />
+      <div className="mb-6 sparkle-container">
+        <img src="/logo.png" alt="Oscar Bait" className="w-24 h-32 object-contain statuette-glow" />
+        <span className="sparkle-dot" style={{top:'4px',right:'-4px',animationDelay:'0s'}}>✦</span>
+        <span className="sparkle-dot" style={{top:'30px',left:'-6px',animationDelay:'0.8s'}}>✦</span>
+        <span className="sparkle-dot" style={{top:'16px',right:'-8px',animationDelay:'1.6s',fontSize:'8px'}}>✦</span>
+        <span className="sparkle-dot" style={{bottom:'30px',left:'-3px',animationDelay:'0.4s'}}>✦</span>
+        <span className="sparkle-dot" style={{bottom:'14px',right:'-5px',animationDelay:'1.2s',fontSize:'8px'}}>✦</span>
+        <span className="sparkle-dot" style={{top:'50%',left:'-8px',animationDelay:'2.0s'}}>✦</span>
       </div>
 
       <h1 className="font-serif text-5xl md:text-7xl font-bold gold-shimmer mb-3">
