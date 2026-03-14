@@ -13,7 +13,7 @@ This is a one-night game, not a SaaS product. Optimize for speed of development,
 - **Database**: SQLite via raw `sqlite3` (single file DB, no ORM)
 - **Containerization**: Docker with docker-compose
 - **Drag and Drop**: @dnd-kit/core + @dnd-kit/sortable
-- **Effects**: canvas-confetti, Web Audio API (synthesized sound effects)
+- **Effects**: canvas-confetti
 
 ## Project Structure
 
@@ -36,16 +36,16 @@ oscar-bait/
 │   │   └── index.html
 │   └── src/
 │       ├── index.js
-│       ├── App.js            # Root component, routing, polling, reveal queue
+│       ├── App.js            # Root component, hash-based routing, polling, reveal queue
 │       ├── api.js            # Centralized API client
-│       ├── sounds.js         # Web Audio synthesized sound effects
 │       └── components/
-│           ├── Home.js           # Landing page, name entry
+│           ├── Home.js           # Landing page, name entry, sparkle animation
 │           ├── Ballot.js         # Main ranking interface with drag-and-drop
 │           ├── SortableNominee.js # dnd-kit sortable item wrapper
 │           ├── Leaderboard.js    # Live scoreboard with expandable player cards
 │           ├── Admin.js          # Winner selection UI (passcode-gated)
-│           └── RevealOverlay.jsx # Full-screen winner reveal animation
+│           ├── RevealOverlay.jsx # Full-screen winner reveal animation
+│           └── OnboardingOverlay.jsx
 ```
 
 ## Architecture Decisions
@@ -58,7 +58,8 @@ oscar-bait/
 - **SQLite**: Single file at configurable `DB_PATH` (default: `oscar_bait.db`). Mounted as a Docker volume so data persists across container restarts.
 - **Categories hardcoded in Python**: The `CATEGORIES` list lives in `database.py` — no separate JSON file or seed script.
 - **All routes in one file**: `main.py` contains all API endpoints. No routers directory — the app is small enough that splitting would add complexity without benefit.
-- **Hash-based admin routing**: Navigate to `#admin` to access the admin panel. No React Router — page state is managed via useState in App.js.
+- **Hash-based routing**: All pages use URL hash (`#ballot`, `#leaderboard`, `#admin`, `#about`). Page state persists across refreshes and browser back/forward works. No React Router.
+- **Maintenance mode**: Set `MAINTENANCE_MODE=true` env var to show a holding page instead of the login screen. Admin access is unaffected.
 
 ## Scoring Logic
 
@@ -102,11 +103,9 @@ If a player did not submit picks for a category, they get 0 points for that cate
 
 When admin announces a winner, the app detects it on the next poll cycle and triggers a multi-phase full-screen overlay:
 
-1. **Envelope phase** (2s) — suspenseful drumroll sound, "And the Oscar goes to..." text
-2. **Winner phase** (2.5s) — reveal sting sound, winner name with confetti burst
-3. **Scoreboard phase** (10s) — per-player results for that category, showing rank given and points earned
-
-Sound effects are synthesized via Web Audio API (no audio files). Players who ranked the winner #1 get a special "perfect pick" fanfare.
+1. **Envelope phase** (2s) — "And the Oscar goes to..." text
+2. **Winner phase** (2.5s) — winner name with confetti burst
+3. **Scoreboard phase** (5s) — per-player results for that category, showing rank given and points earned
 
 ## API Endpoints
 
@@ -123,6 +122,7 @@ All endpoints prefixed with `/api/`. JSON request and response bodies.
 - `POST /api/admin/delete-player` — delete a player
 - `GET /api/categories` — list categories with winners
 - `GET /api/leaderboard` — full leaderboard with detailed stats
+- `GET /api/maintenance` — maintenance mode status
 - `GET /api/announcements/latest` — latest winner announcement with per-player results
 
 ## Environment Variables
@@ -131,6 +131,7 @@ All endpoints prefixed with `/api/`. JSON request and response bodies.
 |---|---|---|
 | `ADMIN_PASSCODE` | Password for the admin panel | Yes |
 | `DB_PATH` | SQLite database path (default: `oscar_bait.db`) | No |
+| `MAINTENANCE_MODE` | Set to `true`/`1`/`yes` to show maintenance page (default: off) | No |
 
 ## Commands
 

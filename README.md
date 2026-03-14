@@ -13,7 +13,7 @@ Scoring: higher rank = more points. If a category has 5 nominees and you ranked 
 
 ## Tech Stack
 
-- **Frontend:** React 18, React Router, dnd-kit (drag-and-drop), canvas-confetti
+- **Frontend:** React 18, dnd-kit (drag-and-drop), canvas-confetti
 - **Backend:** Python / FastAPI / SQLite
 - **Deployment:** Docker
 
@@ -53,10 +53,11 @@ Frontend dev server runs at `http://localhost:3000` and proxies API requests to 
 |---|---|---|
 | `ADMIN_PASSCODE` | Password for the admin panel | Yes |
 | `DB_PATH` | SQLite database path (default: `oscar_bait.db`) | No |
+| `MAINTENANCE_MODE` | Set to `true` to show a holding page (default: off) | No |
 
 ## Admin Panel
 
-Navigate to `/admin` and enter your passcode. From there you can:
+Navigate to `/#admin` and enter your passcode. From there you can:
 
 - Announce winners as they're revealed during the ceremony
 - Clear/change a winner if you made a mistake
