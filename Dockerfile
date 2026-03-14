@@ -20,11 +20,8 @@ COPY backend/ ./
 # Copy frontend build
 COPY --from=frontend-build /app/frontend/build /app/frontend/build
 
-# Create non-root user
-RUN groupadd --system appuser && useradd --system --gid appuser appuser \
-    && mkdir -p /app/data && chown -R appuser:appuser /app
+RUN mkdir -p /app/data
 
 EXPOSE 8000
 
-# Fix ownership of mounted volume data dir, then drop to non-root
-CMD chown -R appuser:appuser /app/data && exec su -s /bin/sh appuser -c "uvicorn main:app --host 0.0.0.0 --port 8000"
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
