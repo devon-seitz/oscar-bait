@@ -1,6 +1,9 @@
 import sqlite3
 import json
 import os
+import logging
+
+logger = logging.getLogger("oscar_bait")
 
 DB_PATH = os.environ.get("DB_PATH", "oscar_bait.db")
 
@@ -93,8 +96,15 @@ def get_db():
 
 def init_db():
     db_dir = os.path.dirname(DB_PATH)
+    logger.info(f"DB_PATH={DB_PATH}")
+    logger.info(f"DB directory: {db_dir or '(current dir)'}")
     if db_dir:
         os.makedirs(db_dir, exist_ok=True)
+        logger.info(f"Directory exists: {os.path.isdir(db_dir)}")
+        logger.info(f"Directory writable: {os.access(db_dir, os.W_OK)}")
+        logger.info(f"Directory contents: {os.listdir(db_dir)}")
+    db_existed = os.path.isfile(DB_PATH)
+    logger.info(f"DB file already exists: {db_existed}")
     conn = get_db()
     conn.executescript("""
         CREATE TABLE IF NOT EXISTS players (
@@ -125,4 +135,7 @@ def init_db():
         );
     """)
     conn.commit()
+    player_count = conn.execute("SELECT COUNT(*) FROM players").fetchone()[0]
+    logger.info(f"DB initialized — {player_count} existing players")
+    logger.info(f"DB file size: {os.path.getsize(DB_PATH)} bytes")
     conn.close()

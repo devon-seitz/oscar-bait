@@ -82,6 +82,8 @@ class WinnerSet(BaseModel):
 
 @app.on_event("startup")
 def startup():
+    import logging
+    logging.basicConfig(level=logging.INFO)
     if not ADMIN_PASSCODE or len(ADMIN_PASSCODE) < 8:
         raise RuntimeError("ADMIN_PASSCODE must be set and at least 8 characters long")
     init_db()
