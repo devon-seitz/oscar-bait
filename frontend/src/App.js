@@ -213,7 +213,7 @@ export default function App() {
 
       {/* Pages */}
       <main className="max-w-5xl mx-auto px-4 py-6">
-        {page === 'home' && (maintenance ? (
+        {page === 'home' && (maintenance && !isAdmin ? (
           <div className="flex flex-col items-center justify-center min-h-[70vh] fade-in-up">
             <div className="mb-6">
               <img src="/logo.png" alt="Oscar Bait" className="w-24 h-32 object-contain" />
