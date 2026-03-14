@@ -4,7 +4,7 @@ import confetti from 'canvas-confetti';
 const PHASE_DURATIONS = {
   envelope: 2000,
   winner: 2500,
-  scoreboard: 2500,
+  scoreboard: 5000,
 };
 const FADE_DURATION = 800;
 const PHASE_TRANSITION = 600; // crossfade between phases
