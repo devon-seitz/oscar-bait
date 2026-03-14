@@ -303,7 +303,7 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
 
               {/* Nominees list */}
               {isOpen && (
-                <div className="pb-4 pt-1 border-t border-oscar-gold/10" style={{ paddingLeft: 24, paddingRight: 24 }}>
+                <div className="pb-4 pt-1 border-t border-oscar-gold/10" style={{ paddingLeft: 12, paddingRight: 36 }}>
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-xs text-oscar-white/40">
                       {cat.nominees.length} nominees — top pick earns {cat.nominees.length} pts
