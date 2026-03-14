@@ -6,7 +6,7 @@ const STEPS = [
     content: (
       <>
         <p className="text-oscar-white/70 text-base md:text-lg leading-relaxed mb-6">
-          Gather your friends, rank your picks, and compete live on Oscar night.
+          Rank your picks, compete with friends, and watch the leaderboard shift live on Oscar night.
         </p>
         <div className="flex justify-center mb-6">
           <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ border: '2px solid rgba(197, 164, 78, 0.4)' }}>
@@ -20,114 +20,48 @@ const STEPS = [
     ),
   },
   {
-    title: '24 Categories, Your Picks',
+    title: 'Pick Your Categories',
     content: (
       <>
-        <p className="text-oscar-white/70 text-base md:text-lg leading-relaxed mb-6">
-          Every Oscar category has a list of nominees. Your job: rank them from most likely to win to least likely.
+        <p className="text-oscar-white/70 text-base md:text-lg leading-relaxed mb-5">
+          Start with the Big 4 — or go all in on the full ballot.
         </p>
-        <div className="space-y-2 mb-6 max-w-xs mx-auto">
-          {['Best Picture', 'Best Director', 'Best Actress'].map((cat, i) => (
+        <div className="space-y-2 mb-4 max-w-xs mx-auto">
+          {['Best Picture', 'Best Director', 'Best Actor', 'Best Actress'].map((cat, i) => (
             <div
               key={cat}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-lg"
-              style={{ background: 'rgba(197, 164, 78, 0.08)', border: '1px solid rgba(197, 164, 78, 0.15)' }}
+              className="flex items-center gap-3 px-4 py-2 rounded-lg"
+              style={{ background: 'rgba(197, 164, 78, 0.12)', border: '1px solid rgba(197, 164, 78, 0.3)' }}
             >
               <span className="font-serif font-bold text-lg" style={{ color: '#C5A44E' }}>{i + 1}</span>
               <span className="text-oscar-white/70 text-sm font-sans">{cat}</span>
             </div>
           ))}
-          <p className="text-oscar-white/30 text-xs text-center mt-1">...and 16 more</p>
+          <p className="text-oscar-white/30 text-xs text-center mt-1">+ 15 more in The Full Cast</p>
         </div>
-        <p className="text-oscar-white/50 text-sm leading-relaxed">
-          Rank as many or as few categories as you like — every pick counts.
-        </p>
-      </>
-    ),
-  },
-  {
-    title: 'Drag to Rank',
-    content: (
-      <>
-        <p className="text-oscar-white/70 text-base md:text-lg leading-relaxed mb-6">
-          Tap and hold a nominee, then drag to reorder. Your #1 pick is who you think will win.
-        </p>
-        <div className="space-y-2 mb-6 max-w-xs mx-auto">
-          {[
-            { rank: 1, name: 'Your top pick', highlight: true },
-            { rank: 2, name: 'Second choice', highlight: false },
-            { rank: 3, name: 'Third choice', highlight: false },
-          ].map((item) => (
-            <div
-              key={item.rank}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all"
-              style={{
-                background: item.highlight ? 'rgba(197, 164, 78, 0.15)' : 'rgba(250, 248, 245, 0.03)',
-                border: item.highlight ? '1px solid rgba(197, 164, 78, 0.4)' : '1px solid rgba(250, 248, 245, 0.08)',
-              }}
-            >
-              <span className="font-serif font-bold text-base" style={{ color: item.highlight ? '#C5A44E' : 'rgba(250, 248, 245, 0.3)' }}>
-                #{item.rank}
-              </span>
-              <span className="text-sm font-sans" style={{ color: item.highlight ? '#FAF8F5' : 'rgba(250, 248, 245, 0.5)' }}>
-                {item.name}
-              </span>
-              <span className="ml-auto text-oscar-white/20 text-lg">⠿</span>
-            </div>
-          ))}
-        </div>
-        <p className="text-oscar-white/50 text-sm leading-relaxed">
-          Your picks auto-save as you go. When you're confident, lock in your ballot.
-        </p>
-      </>
-    ),
-  },
-  {
-    title: "Haven't Seen Everything?",
-    content: (
-      <>
-        <p className="text-oscar-white/70 text-base md:text-lg leading-relaxed mb-6">
-          No problem. Every nominee has a short scouting report to help you pick.
-        </p>
-        <div className="space-y-3 mb-6 max-w-xs mx-auto">
+        <div className="space-y-2 max-w-xs mx-auto">
           <div
-            className="flex items-center gap-3 px-4 py-3 rounded-lg"
-            style={{ background: 'rgba(250, 248, 245, 0.03)', border: '1px solid rgba(250, 248, 245, 0.08)' }}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-lg"
+            style={{ background: 'rgba(197, 164, 78, 0.08)', border: '1px solid rgba(197, 164, 78, 0.15)' }}
           >
-            <span className="flex items-center justify-center w-6 h-6 flex-shrink-0">
-              <svg className="w-4 h-4" style={{ color: '#A0A0A0' }} viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
-              </svg>
-            </span>
-            <span className="text-oscar-white/60 text-sm font-sans leading-relaxed">
-              Tap the <span style={{ color: '#C5A44E' }}>info icon</span> on any nominee for a quick take
-            </span>
-          </div>
-          <div
-            className="flex items-center gap-3 px-4 py-3 rounded-lg"
-            style={{ background: 'rgba(250, 248, 245, 0.03)', border: '1px solid rgba(250, 248, 245, 0.08)' }}
-          >
-            <span className="text-base flex-shrink-0">📋</span>
-            <span className="text-oscar-white/60 text-sm font-sans leading-relaxed">
-              Tap <span style={{ color: '#C5A44E' }}>Scouting Report</span> for the full category rundown
-            </span>
+            <svg className="w-4 h-4 flex-shrink-0" style={{ color: '#C5A44E' }} viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0l3.09 6.26L22 7.27l-5 4.87 1.18 6.88L12 15.4l-6.18 3.62L7 12.14 2 7.27l6.91-1.01L12 0z"/>
+            </svg>
+            <span className="text-oscar-white/60 text-sm font-sans">Complete all 19 to earn a <span style={{ color: '#C5A44E' }}>Hollywood Star</span></span>
           </div>
         </div>
-        <p className="text-oscar-white/50 text-sm leading-relaxed">
-          You don't need to be a film critic — just trust your gut and have fun.
-        </p>
       </>
     ),
   },
   {
-    title: 'How Scoring Works',
+    title: 'How to Play',
     content: (
       <>
-        <p className="text-oscar-white/70 text-base md:text-lg leading-relaxed mb-6">
-          The higher you rank the actual winner, the more points you earn.
+        <p className="text-oscar-white/70 text-base md:text-lg leading-relaxed mb-5">
+          Drag nominees to rank them. #1 = your pick to win. The higher you rank the actual winner, the more points you earn.
         </p>
-        <div className="rounded-lg overflow-hidden mb-6 max-w-xs mx-auto" style={{ border: '1px solid rgba(197, 164, 78, 0.2)' }}>
-          <div className="px-4 py-2.5 text-xs font-sans font-medium text-oscar-white/40 flex justify-between" style={{ background: 'rgba(197, 164, 78, 0.08)' }}>
+        <div className="rounded-lg overflow-hidden mb-5 max-w-xs mx-auto" style={{ border: '1px solid rgba(197, 164, 78, 0.2)' }}>
+          <div className="px-4 py-2 text-xs font-sans font-medium text-oscar-white/40 flex justify-between" style={{ background: 'rgba(197, 164, 78, 0.08)' }}>
             <span>Your Rank</span>
             <span>Points Earned</span>
           </div>
@@ -139,7 +73,7 @@ const STEPS = [
           ].map((row, i) => (
             <div
               key={row.rank}
-              className="px-4 py-2 flex justify-between items-center text-sm"
+              className="px-4 py-1.5 flex justify-between items-center text-sm"
               style={{ background: i % 2 === 0 ? '#141414' : '#1A1A1A' }}
             >
               <span className="text-oscar-white/70 font-sans">
@@ -153,7 +87,7 @@ const STEPS = [
           ))}
         </div>
         <p className="text-oscar-white/50 text-sm leading-relaxed">
-          Example: 5 nominees in a category. Rank the winner #1 and earn the max 5 points.
+          Haven't seen everything? Tap the <span style={{ color: '#C5A44E' }}>Scouting Report</span> on any category for quick takes on each nominee.
         </p>
       </>
     ),
