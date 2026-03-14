@@ -11,5 +11,18 @@ services:
     volumes:
       - oscar-data:/app/data
 
+  oscar-bot:
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+    environment:
+      - OSCAR_API_URL=http://oscar-bait:8000
+      - ADMIN_PASSCODE=${ADMIN_PASSCODE}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - BOT_MODE=${BOT_MODE:-auto}
+      - POLL_INTERVAL=${POLL_INTERVAL:-45}
+    depends_on:
+      - oscar-bait
+
 volumes:
   oscar-data:

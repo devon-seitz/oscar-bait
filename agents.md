@@ -30,6 +30,19 @@ oscar-bait/
 │   ├── main.py              # FastAPI app — all routes in one file
 │   ├── database.py           # DB connection, init_db(), CATEGORIES list
 │   └── requirements.txt
+├── bot/
+│   ├── __main__.py          # Entry point for `python -m bot`
+│   ├── runner.py            # Main polling loop + confirm/auto mode
+│   ├── scraper.py           # Live blog HTTP fetch + HTML parsing
+│   ├── extractor.py         # Claude API extraction + validation
+│   ├── announcer.py         # Admin API caller
+│   ├── state.py             # Announced category tracking
+│   ├── config.py            # Environment variable loading
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── test/
+│       ├── mock_server.py   # Fake live blog server on :9000
+│       └── announce.py      # CLI to add fake winner entries
 ├── frontend/
 │   ├── package.json
 │   ├── public/
@@ -153,6 +166,98 @@ ADMIN_PASSCODE=yourpass uvicorn main:app --reload --port 8000
 cd frontend
 npm install && npm start
 ```
+
+## Oscar Bot (Automated Winner Announcer)
+
+A standalone Python script in `bot/` that scrapes live blogs during the ceremony and uses Claude to automatically announce winners via the admin API.
+
+### How It Works
+
+1. Polls live blog sources (AP News, Deadline, Variety) every 45 seconds
+2. Sends scraped text + unannounced categories to Claude Sonnet for structured extraction
+3. Validates extracted winner strings match CATEGORIES exactly (accent-sensitive, em-dash aware)
+4. Calls `POST /api/admin/winner` to announce — same endpoint the admin panel uses
+
+### Bot Structure
+
+```
+bot/
+├── __init__.py
+├── __main__.py          # Entry point for `python -m bot`
+├── runner.py            # Main polling loop, confirm/auto mode
+├── scraper.py           # HTTP fetch + BeautifulSoup parsing
+├── extractor.py         # Claude API prompt + response validation
+├── announcer.py         # Admin API caller + CATEGORIES validation
+├── state.py             # Tracks announced categories, action log
+├── config.py            # Environment variable loading
+├── requirements.txt     # anthropic, httpx, beautifulsoup4
+└── Dockerfile
+```
+
+### Bot Environment Variables
+
+| Variable | Description | Required |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | Anthropic API key for Claude calls | Yes (for bot) |
+| `BOT_MODE` | `auto` (default) or `confirm` (prompts before announcing) | No |
+| `POLL_INTERVAL` | Seconds between poll cycles (default: 45) | No |
+| `OSCAR_API_URL` | Base URL of the oscar-bait API (default: `http://localhost:8000`) | No |
+| `SOURCE_AP_URL` | Override AP News live blog URL | No |
+| `SOURCE_DEADLINE_URL` | Override Deadline live blog URL | No |
+| `SOURCE_VARIETY_URL` | Override Variety live blog URL | No |
+
+### Running the Bot
+
+```bash
+# Locally
+cd oscar-bait
+pip install -r bot/requirements.txt
+python -m bot
+
+# Via Docker Compose (runs alongside the app)
+docker compose up --build
+```
+
+### Testing the Bot
+
+A mock live blog server and announce script live in `bot/test/` for end-to-end testing without real live blog sources.
+
+**`bot/test/mock_server.py`** — Serves a fake live blog at `http://localhost:9000/live`. Reads entries from `bot/test/entries.json` and renders them as HTML. Re-reads the file on every request so new entries appear immediately.
+
+**`bot/test/announce.py`** — CLI tool to add fake winner entries to the mock blog. Interactive menu lets you pick a category and nominee, or pass a category name as an argument for a random winner. Uses varied phrasings ("And the Oscar goes to...", "WINNER:", "{name} wins the Oscar for...", etc.) to test extraction robustness.
+
+**Full end-to-end test (3 terminals):**
+
+```bash
+# Terminal 1 — app
+docker compose up oscar-bait
+
+# Terminal 2 — mock blog server
+python -m bot.test.mock_server
+
+# Terminal 3 — bot pointed at mock blog
+SOURCE_AP_URL=http://localhost:9000/live \
+SOURCE_DEADLINE_URL=http://localhost:9000/live \
+SOURCE_VARIETY_URL=http://localhost:9000/live \
+python -m bot
+```
+
+Then add fake winners:
+```bash
+python -m bot.test.announce                  # interactive
+python -m bot.test.announce "Best Picture"   # random winner for category
+```
+
+The bot will detect the new entry on its next poll cycle, extract the winner via Claude, and announce it to the app.
+
+### Safety Features
+
+- Only "high" confidence extractions are auto-announced
+- All extracted strings validated against exact CATEGORIES entries before API call
+- Circuit breaker pauses 5 min after 3 consecutive Claude API errors
+- Deduplication: seeds from `GET /api/categories` on startup, tracks announced set
+- Every action logged with timestamps and source quotes
+- Use `POST /api/admin/clear-winner` to undo any mistakes
 
 ## Common Pitfalls to Avoid
 
