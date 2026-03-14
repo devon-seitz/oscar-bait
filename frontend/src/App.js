@@ -49,7 +49,7 @@ export default function App() {
     };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
-  }, [player]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [player]); // eslint-disable-line
 
   const refreshCategories = useCallback(async () => {
     try {
