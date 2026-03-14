@@ -218,10 +218,12 @@ export default function App() {
             <div className="mb-6">
               <img src="/logo.png" alt="Oscar Bait" className="w-24 h-32 object-contain" />
             </div>
-            <h1 className="font-serif text-4xl md:text-5xl font-bold gold-shimmer mb-4">Hang Tight</h1>
-            <p className="text-oscar-white/60 text-lg text-center max-w-md font-sans">
-              Hey we're still working through a few things, come back soon!
-            </p>
+            <div className="gold-border-bright rounded-xl p-8 bg-oscar-surface max-w-md text-center">
+              <h1 className="font-serif text-4xl md:text-5xl font-bold gold-shimmer mb-4">Hang Tight</h1>
+              <p className="text-oscar-white/60 text-lg font-sans">
+                Hey we're still working through a few things, come back soon!
+              </p>
+            </div>
           </div>
         ) : (
           <Home onJoin={handleJoin} onViewLeaderboard={() => setPage('leaderboard')} />
