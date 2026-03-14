@@ -12,7 +12,15 @@ export default function App() {
   const storedPlayer = () => {
     try { const p = JSON.parse(localStorage.getItem('oscar_bait_player')); return p?.id ? p : null; } catch { return null; }
   };
-  const [page, setPage] = useState(() => storedPlayer() ? 'ballot' : 'home');
+  const validPages = ['home', 'ballot', 'leaderboard', 'admin', 'about'];
+  const [page, setPage] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    if (hash && validPages.includes(hash)) {
+      if ((hash === 'ballot') && !storedPlayer()) return 'home';
+      return hash;
+    }
+    return storedPlayer() ? 'ballot' : 'home';
+  });
   const [player, setPlayer] = useState(storedPlayer);
   const [categories, setCategories] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -24,10 +32,24 @@ export default function App() {
   const [maintenance, setMaintenance] = useState(false);
   const lastSeenAnnouncementTimeRef = useRef(new Date().toISOString());
 
-  // Check URL hash for admin
+  // Sync hash with page
   useEffect(() => {
-    if (window.location.hash === '#admin') setPage('admin');
-  }, []);
+    window.location.hash = page === 'home' ? '' : page;
+  }, [page]);
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const onHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      if (hash && validPages.includes(hash)) {
+        setPage(hash);
+      } else {
+        setPage(player ? 'ballot' : 'home');
+      }
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, [player]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const refreshCategories = useCallback(async () => {
     try {
