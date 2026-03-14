@@ -490,7 +490,13 @@ export default function Leaderboard({ data: initialData, categories, currentPlay
                           </span>
                           <MovementBadge currentRank={idx + 1} previousRank={player.previous_rank} />
                         </div>
-                        {announcedCategories.length > 0 && <PlayerSummary player={player} />}
+                        {announcedCategories.length > 0 ? (
+                          <PlayerSummary player={player} />
+                        ) : player.picks_detail && (
+                          <div className="text-xs text-oscar-white/40 mt-0.5">
+                            {Object.values(player.picks_detail).filter(d => d.has_picks).length} of {TOTAL_CATEGORIES} categories picked
+                          </div>
+                        )}
                       </div>
 
                       {/* Score */}
