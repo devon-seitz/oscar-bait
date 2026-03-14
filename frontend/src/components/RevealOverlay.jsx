@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import confetti from 'canvas-confetti';
-import { playDrumroll, playRevealSting } from '../sounds';
 
 const PHASE_DURATIONS = {
   envelope: 2000,
@@ -69,11 +68,8 @@ export default function RevealOverlay({ announcement, onDismiss, currentPlayerNa
 
   // Phase auto-advance: envelope → winner → scoreboard
   useEffect(() => {
-    playDrumroll();
-
     addTimer(() => {
       transitionTo('winner', () => {
-        playRevealSting();
         fireConfetti();
       });
     }, PHASE_DURATIONS.envelope);
@@ -108,7 +104,6 @@ export default function RevealOverlay({ announcement, onDismiss, currentPlayerNa
     if (currentPhase === 'envelope' || currentPhase === 'winner') {
       clearTimers();
       if (currentPhase === 'envelope') {
-        playRevealSting();
         fireConfetti();
       }
       transitionTo('scoreboard');

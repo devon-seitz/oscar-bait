@@ -16,7 +16,6 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import SortableNominee from './SortableNominee';
-import { unlockAudio } from '../sounds';
 
 export default function Ballot({ categories, picks, leaderboard, player, onSubmitPick }) {
   const [openCategory, setOpenCategory] = useState(null);
@@ -66,12 +65,6 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
     prevScoreRef.current = myScore;
   }, [myScore]);
 
-  // Unlock audio on first user interaction
-  useEffect(() => {
-    const handler = () => { unlockAudio(); window.removeEventListener('click', handler); };
-    window.addEventListener('click', handler);
-    return () => window.removeEventListener('click', handler);
-  }, []);
 
   // Detect new winner announcements for visual celebration — only reacts to category changes (polling)
   const prevWinnersRef = useRef(null); // null = not yet initialized
