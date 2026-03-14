@@ -37,7 +37,7 @@ const STEPS = [
               <span className="text-oscar-white/70 text-sm font-sans">{cat}</span>
             </div>
           ))}
-          <p className="text-oscar-white/30 text-xs text-center mt-1">...and 21 more</p>
+          <p className="text-oscar-white/30 text-xs text-center mt-1">...and 16 more</p>
         </div>
         <p className="text-oscar-white/50 text-sm leading-relaxed">
           Rank as many or as few categories as you like — every pick counts.

@@ -18,8 +18,6 @@ export default function SortableNominee({ id, index, totalNominees, disabled, de
     transition,
   };
 
-  const points = totalNominees - index;
-
   return (
     <div
       ref={setNodeRef}
@@ -65,7 +63,7 @@ export default function SortableNominee({ id, index, totalNominees, disabled, de
           onClick={(e) => { e.stopPropagation(); onInfoClick?.(); }}
           onPointerDown={(e) => e.stopPropagation()}
           className="w-4 h-4 flex-shrink-0 cursor-pointer transition-colors"
-          style={{ color: '#A0A0A0', touchAction: 'pan-y' }}
+          style={{ color: '#A0A0A0', touchAction: 'pan-y', marginRight: 16 }}
           onMouseEnter={(e) => e.currentTarget.style.color = '#C5A44E'}
           onMouseLeave={(e) => e.currentTarget.style.color = '#A0A0A0'}
           viewBox="0 0 24 24"
@@ -76,7 +74,6 @@ export default function SortableNominee({ id, index, totalNominees, disabled, de
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
         </svg>
       )}
-      <span className="text-xs text-oscar-gold/50 flex-shrink-0 pr-4 py-3 text-right" style={{ touchAction: 'pan-y', minWidth: 44 }}>{points} pt{points !== 1 ? 's' : ''}</span>
     </div>
   );
 }
