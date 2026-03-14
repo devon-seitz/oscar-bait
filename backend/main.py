@@ -15,6 +15,7 @@ import sqlite3
 
 ADMIN_PASSCODE = os.environ.get("ADMIN_PASSCODE", "")
 ALLOWED_ORIGIN = os.environ.get("ALLOWED_ORIGIN", "*")
+MAINTENANCE_MODE = os.environ.get("MAINTENANCE_MODE", "").lower() in ("1", "true", "yes")
 
 app = FastAPI(title="Oscar Bait API", docs_url=None, redoc_url=None)
 
@@ -115,6 +116,11 @@ def _verify_player_token(player_id: int, token: str) -> bool:
         return False
     expected = _generate_token(player_id, row["password_hash"])
     return secrets.compare_digest(token, expected)
+
+
+@app.get("/api/maintenance")
+def get_maintenance():
+    return {"maintenance": MAINTENANCE_MODE}
 
 
 @app.post("/api/players")

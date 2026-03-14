@@ -21,6 +21,7 @@ export default function App() {
   const [activeReveal, setActiveReveal] = useState(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isAdmin, setIsAdmin] = useState(() => !!sessionStorage.getItem('admin_passcode'));
+  const [maintenance, setMaintenance] = useState(false);
   const lastSeenAnnouncementTimeRef = useRef(new Date().toISOString());
 
   // Check URL hash for admin
@@ -76,6 +77,10 @@ export default function App() {
     refreshCategories();
     refreshLeaderboard();
   }, [refreshCategories, refreshLeaderboard]);
+
+  useEffect(() => {
+    fetch('/api/maintenance').then(r => r.json()).then(d => setMaintenance(d.maintenance)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     refreshCategories();
@@ -208,7 +213,19 @@ export default function App() {
 
       {/* Pages */}
       <main className="max-w-5xl mx-auto px-4 py-6">
-        {page === 'home' && <Home onJoin={handleJoin} onViewLeaderboard={() => setPage('leaderboard')} />}
+        {page === 'home' && (maintenance ? (
+          <div className="flex flex-col items-center justify-center min-h-[70vh] fade-in-up">
+            <div className="mb-6">
+              <img src="/logo.png" alt="Oscar Bait" className="w-24 h-32 object-contain" />
+            </div>
+            <h1 className="font-serif text-4xl md:text-5xl font-bold gold-shimmer mb-4">Hang Tight</h1>
+            <p className="text-oscar-white/60 text-lg text-center max-w-md font-sans">
+              Hey we're still working through a few things, come back soon!
+            </p>
+          </div>
+        ) : (
+          <Home onJoin={handleJoin} onViewLeaderboard={() => setPage('leaderboard')} />
+        ))}
         {page === 'ballot' && (
           <Ballot
             categories={categories}
