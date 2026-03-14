@@ -150,7 +150,7 @@ def create_player(request: Request, player: PlayerCreate):
         row = db.execute("SELECT id, name, password_hash FROM players WHERE name = ?", (name,)).fetchone()
         if row:
             # Password was reset by admin — accept whatever they provide as the new password
-            if row["password_hash"] is None:
+            if not row["password_hash"]:
                 new_hash = _hash_password(player.password)
                 db.execute("UPDATE players SET password_hash = ? WHERE id = ?", (new_hash, row["id"]))
                 db.commit()
@@ -361,7 +361,7 @@ def reset_password(data: PlayerResetPassword):
         db.close()
         raise HTTPException(status_code=404, detail="Player not found")
 
-    db.execute("UPDATE players SET password_hash = NULL WHERE id = ?", (data.player_id,))
+    db.execute("UPDATE players SET password_hash = '' WHERE id = ?", (data.player_id,))
     db.commit()
     db.close()
     return {"status": "ok", "name": player["name"]}

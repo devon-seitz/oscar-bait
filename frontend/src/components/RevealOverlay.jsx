@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import confetti from 'canvas-confetti';
+const loadConfetti = () => import('canvas-confetti').then(m => m.default);
 
 const PHASE_DURATIONS = {
   envelope: 2000,
@@ -44,7 +44,8 @@ export default function RevealOverlay({ announcement, onDismiss, currentPlayerNa
     addTimer(() => onDismiss(), FADE_DURATION);
   }, [fading, clearTimers, addTimer, onDismiss]);
 
-  const fireConfetti = useCallback(() => {
+  const fireConfetti = useCallback(async () => {
+    const confetti = await loadConfetti();
     const gold = ['#C5A44E', '#D4B96A', '#E8D5A3', '#FAF8F5'];
     confetti({
       particleCount: 150,

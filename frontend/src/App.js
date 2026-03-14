@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { api } from './api';
 import Home from './components/Home';
-import Ballot from './components/Ballot';
-import Leaderboard from './components/Leaderboard';
-import Admin from './components/Admin';
-import About from './components/About';
-import RevealOverlay from './components/RevealOverlay';
-import OnboardingOverlay from './components/OnboardingOverlay';
+
+const Ballot = lazy(() => import('./components/Ballot'));
+const Leaderboard = lazy(() => import('./components/Leaderboard'));
+const Admin = lazy(() => import('./components/Admin'));
+const About = lazy(() => import('./components/About'));
+const RevealOverlay = lazy(() => import('./components/RevealOverlay'));
+const OnboardingOverlay = lazy(() => import('./components/OnboardingOverlay'));
 
 export default function App() {
   const storedPlayer = () => {
@@ -174,16 +175,18 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-oscar-black">
-      {showOnboarding && (
-        <OnboardingOverlay onDismiss={handleOnboardingDismiss} />
-      )}
-      {activeReveal && (
-        <RevealOverlay
-          announcement={activeReveal}
-          onDismiss={handleRevealDismiss}
-          currentPlayerName={player?.name}
-        />
-      )}
+      <Suspense fallback={null}>
+        {showOnboarding && (
+          <OnboardingOverlay onDismiss={handleOnboardingDismiss} />
+        )}
+        {activeReveal && (
+          <RevealOverlay
+            announcement={activeReveal}
+            onDismiss={handleRevealDismiss}
+            currentPlayerName={player?.name}
+          />
+        )}
+      </Suspense>
       {/* Nav */}
       <nav className="border-b border-oscar-gold/20 bg-oscar-black/95 backdrop-blur sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
@@ -244,6 +247,7 @@ export default function App() {
 
       {/* Pages */}
       <main className="max-w-5xl mx-auto px-4 py-6">
+        <Suspense fallback={<div className="flex items-center justify-center min-h-[50vh]"><div className="w-8 h-8 border-2 border-oscar-gold/30 border-t-oscar-gold rounded-full animate-spin" /></div>}>
         {page === 'home' && (maintenance && !isAdmin ? (
           <div className="flex flex-col items-center justify-center min-h-[70vh] fade-in-up">
             <div className="mb-6">
@@ -274,6 +278,7 @@ export default function App() {
         )}
         {page === 'admin' && <Admin categories={categories} onRefresh={refreshCategories} onAuthenticated={() => setIsAdmin(true)} />}
         {page === 'about' && <About />}
+        </Suspense>
       </main>
     </div>
   );

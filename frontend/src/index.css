@@ -1,0 +1,196 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  background-color: #0A0A0A;
+  color: #FAF8F5;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.gold-gradient {
+  background: linear-gradient(135deg, #C5A44E 0%, #D4B96A 50%, #C5A44E 100%);
+}
+.gold-text-gradient {
+  background: linear-gradient(135deg, #C5A44E 0%, #D4B96A 50%, #E8D5A8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.gold-border {
+  border: 1px solid rgba(197, 164, 78, 0.3);
+}
+.gold-border-bright {
+  border: 1px solid rgba(197, 164, 78, 0.6);
+}
+@keyframes scoreGlow {
+  0%, 100% { text-shadow: 0 0 8px rgba(197, 164, 78, 0.3); }
+  50% { text-shadow: 0 0 24px rgba(197, 164, 78, 0.8), 0 0 48px rgba(197, 164, 78, 0.4); }
+}
+.score-glow {
+  animation: scoreGlow 1s ease-in-out 2;
+}
+.drag-item {
+  touch-action: none;
+  user-select: none;
+}
+.drag-item-dragging {
+  opacity: 0.5;
+}
+.drag-overlay {
+  box-shadow: 0 8px 32px rgba(197, 164, 78, 0.3);
+}
+@keyframes goldPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(197, 164, 78, 0.4); }
+  50% { box-shadow: 0 0 20px 4px rgba(197, 164, 78, 0.2); }
+}
+.winner-announce {
+  animation: goldPulse 2s ease-in-out 3;
+}
+@keyframes cardCelebrate {
+  0% { border-color: rgba(197, 164, 78, 0.3); box-shadow: 0 0 0 0 rgba(197, 164, 78, 0); }
+  15% { border-color: rgba(197, 164, 78, 0.9); box-shadow: 0 0 24px 4px rgba(197, 164, 78, 0.3); }
+  40% { border-color: rgba(197, 164, 78, 0.7); box-shadow: 0 0 16px 2px rgba(197, 164, 78, 0.15); }
+  60% { border-color: rgba(197, 164, 78, 0.8); box-shadow: 0 0 20px 3px rgba(197, 164, 78, 0.2); }
+  100% { border-color: rgba(197, 164, 78, 0.4); box-shadow: 0 0 0 0 rgba(197, 164, 78, 0); }
+}
+.card-celebrate {
+  animation: cardCelebrate 2.5s ease-out;
+}
+@keyframes slideInBadge {
+  from { opacity: 0; transform: translateX(-12px) scale(0.8); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+.badge-slide-in {
+  animation: slideInBadge 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+}
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.points-count-up {
+  animation: countUp 0.4s ease-out 0.6s both;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up {
+  animation: fadeInUp 0.4s ease-out;
+}
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.gold-shimmer {
+  background: linear-gradient(90deg, #C5A44E 0%, #E8D5A8 25%, #C5A44E 50%, #E8D5A8 75%, #C5A44E 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+.statuette-glow {
+  position: relative;
+  filter: drop-shadow(0 0 8px rgba(197, 164, 78, 0.3));
+  animation: gentleGlow 3s ease-in-out infinite;
+}
+@keyframes gentleGlow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(197, 164, 78, 0.2)); }
+  50% { filter: drop-shadow(0 0 14px rgba(197, 164, 78, 0.5)); }
+}
+.sparkle-container { position: relative; display: inline-block; }
+.sparkle-dot {
+  position: absolute;
+  color: #E8D5A8;
+  font-size: 10px;
+  pointer-events: none;
+  animation: sparkle 2.5s ease-in-out infinite;
+}
+@keyframes slamIn {
+  0% { opacity: 0; transform: scale(1.5); }
+  60% { opacity: 1; transform: scale(0.95); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.slam-in {
+  animation: slamIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes dotPulse {
+  0%, 20% { opacity: 0; }
+  40%, 100% { opacity: 1; }
+}
+.animate-dot-1 { animation: dotPulse 1.5s ease-in-out infinite; }
+.animate-dot-2 { animation: dotPulse 1.5s ease-in-out infinite 0.3s; }
+.animate-dot-3 { animation: dotPulse 1.5s ease-in-out infinite 0.6s; }
+@keyframes envelopeFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.envelope-fade-in {
+  animation: envelopeFadeIn 0.8s ease-out forwards;
+}
+@keyframes goldGlow {
+  0%, 100% { text-shadow: 0 0 20px rgba(197, 164, 78, 0.3); }
+  50% { text-shadow: 0 0 40px rgba(197, 164, 78, 0.6), 0 0 80px rgba(197, 164, 78, 0.3); }
+}
+.gold-glow {
+  animation: goldGlow 2s ease-in-out infinite;
+}
+@keyframes scoreboardSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.scoreboard-slide-up {
+  animation: scoreboardSlideUp 0.5s ease-out forwards;
+}
+.glow-gold {
+  box-shadow: 0 0 16px 2px rgba(197, 164, 78, 0.3), inset 0 0 8px rgba(197, 164, 78, 0.05);
+}
+.glow-silver {
+  box-shadow: 0 0 16px 2px rgba(160, 160, 160, 0.25), inset 0 0 8px rgba(160, 160, 160, 0.05);
+}
+.glow-bronze {
+  box-shadow: 0 0 12px 2px rgba(205, 127, 50, 0.25), inset 0 0 8px rgba(205, 127, 50, 0.05);
+}
+@keyframes livePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.live-dot {
+  animation: livePulse 2s ease-in-out infinite;
+}
+@keyframes goldFlash {
+  0% { background-color: rgba(197, 164, 78, 0); }
+  30% { background-color: rgba(197, 164, 78, 0.12); }
+  100% { background-color: rgba(197, 164, 78, 0); }
+}
+.card-flash {
+  animation: goldFlash 1.2s ease-out;
+}
+@keyframes confettiBurst {
+  0% { opacity: 0; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.final-winner-card {
+  animation: confettiBurst 0.8s ease-out;
+}
+@keyframes stepSlideInRight {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes stepSlideInLeft {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.step-slide-right {
+  animation: stepSlideInRight 0.35s ease-out;
+}
+.step-slide-left {
+  animation: stepSlideInLeft 0.35s ease-out;
+}
