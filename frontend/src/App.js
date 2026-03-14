@@ -30,7 +30,16 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isAdmin, setIsAdmin] = useState(() => !!sessionStorage.getItem('admin_passcode'));
   const [maintenance, setMaintenance] = useState(false);
+  const [descriptions, setDescriptions] = useState({});
   const lastSeenAnnouncementTimeRef = useRef(new Date().toISOString());
+
+  // Load descriptions once on mount
+  useEffect(() => {
+    fetch('/descriptions.json')
+      .then(r => r.json())
+      .then(setDescriptions)
+      .catch(() => {});
+  }, []);
 
   // Sync hash with page
   useEffect(() => {
@@ -257,6 +266,7 @@ export default function App() {
             leaderboard={leaderboard}
             player={player}
             onSubmitPick={handleSubmitPick}
+            descriptions={descriptions}
           />
         )}
         {page === 'leaderboard' && (

@@ -16,14 +16,17 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import SortableNominee from './SortableNominee';
+import BottomSheet from './BottomSheet';
 
-export default function Ballot({ categories, picks, leaderboard, player, onSubmitPick }) {
+export default function Ballot({ categories, picks, leaderboard, player, onSubmitPick, descriptions }) {
   const [openCategory, setOpenCategory] = useState(null);
   const [localRankings, setLocalRankings] = useState({});
   const [saving, setSaving] = useState({});
   const [saved, setSaved] = useState({});
   const [activeId, setActiveId] = useState(null);
   const [celebratingCats, setCelebratingCats] = useState({});
+  const [infoSheet, setInfoSheet] = useState(null);
+  const [scoutingSheet, setScoutingSheet] = useState(null);
   const categoryRefs = useRef({});
 
   const sensors = useSensors(
@@ -301,9 +304,34 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
               {/* Nominees list */}
               {isOpen && (
                 <div className="px-4 pb-4 pt-1 border-t border-oscar-gold/10">
-                  <p className="text-xs text-oscar-white/40 mb-3">
-                    {cat.nominees.length} nominees — top pick earns {cat.nominees.length} pts
-                  </p>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs text-oscar-white/40">
+                      {cat.nominees.length} nominees — top pick earns {cat.nominees.length} pts
+                    </p>
+                    {descriptions[cat.name] && Object.keys(descriptions[cat.name]).length > 0 && (
+                      <button
+                        onClick={() => {
+                          const catDescs = descriptions[cat.name];
+                          const entries = rankings
+                            .filter(n => catDescs[n])
+                            .map(n => ({ name: n, description: catDescs[n] }));
+                          setScoutingSheet({ categoryName: cat.name, entries });
+                        }}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors flex-shrink-0"
+                        style={{ borderColor: '#A68A3E', color: '#A68A3E' }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#A68A3E';
+                          e.currentTarget.style.color = '#0A0A0A';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.color = '#A68A3E';
+                        }}
+                      >
+                        <span>📋</span> Scouting Report
+                      </button>
+                    )}
+                  </div>
                   <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}
@@ -318,6 +346,11 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
                           index={index}
                           totalNominees={cat.nominees.length}
                           disabled={false}
+                          description={descriptions[cat.name]?.[nominee]}
+                          onInfoClick={() => {
+                            const desc = descriptions[cat.name]?.[nominee];
+                            if (desc) setInfoSheet({ name: nominee, description: desc });
+                          }}
                         />
                       ))}
                     </SortableContext>
@@ -346,6 +379,47 @@ export default function Ballot({ categories, picks, leaderboard, player, onSubmi
           );
         })}
       </div>
+
+      {/* Single nominee info sheet */}
+      <BottomSheet
+        isOpen={!!infoSheet}
+        onClose={() => setInfoSheet(null)}
+        maxHeight="40vh"
+        title={infoSheet?.name}
+      >
+        <p style={{ color: '#E0E0E0', fontSize: '0.95rem', lineHeight: 1.6, margin: 0 }}>
+          {infoSheet?.description}
+        </p>
+      </BottomSheet>
+
+      {/* Full category scouting report sheet */}
+      <BottomSheet
+        isOpen={!!scoutingSheet}
+        onClose={() => setScoutingSheet(null)}
+        maxHeight="85vh"
+        title={scoutingSheet?.categoryName}
+      >
+        {scoutingSheet && scoutingSheet.entries.map((entry, i) => (
+          <div
+            key={entry.name}
+            style={{
+              borderBottom: i < scoutingSheet.entries.length - 1 ? '1px solid #2A2A2A' : 'none',
+              paddingBottom: 16,
+              marginBottom: 16,
+            }}
+          >
+            <h4
+              className="font-serif font-semibold"
+              style={{ fontSize: '1rem', color: '#C5A44E', margin: '0 0 4px' }}
+            >
+              {entry.name}
+            </h4>
+            <p style={{ color: '#E0E0E0', fontSize: '0.95rem', lineHeight: 1.6, margin: 0 }}>
+              {entry.description}
+            </p>
+          </div>
+        ))}
+      </BottomSheet>
     </div>
   );
 }
