@@ -30,6 +30,31 @@ def _build_categories_text(already_announced: set[str]) -> str:
     return "\n\n".join(lines)
 
 
+def _normalize(s: str) -> str:
+    """Lowercase, strip punctuation/quotes, collapse whitespace."""
+    import re
+    s = s.lower().replace("\u2014", " ").replace("—", " ").replace(",", " ")
+    s = re.sub(r'["\'\u201c\u201d\u2018\u2019]', '', s)
+    return re.sub(r'\s+', ' ', s).strip()
+
+
+def _fuzzy_match_nominee(returned: str, nominees: set[str]) -> str | None:
+    """Try to match Claude's returned string to an actual nominee."""
+    norm_returned = _normalize(returned)
+    for nominee in nominees:
+        norm_nominee = _normalize(nominee)
+        # Check if one contains the other, or if the name portion matches
+        if norm_returned == norm_nominee:
+            return nominee
+        if norm_returned in norm_nominee or norm_nominee in norm_returned:
+            return nominee
+        # Match just the person's name (before the dash)
+        name_part = norm_nominee.split("  ")[0].strip()  # double space from em-dash replacement
+        if name_part and name_part in norm_returned:
+            return nominee
+    return None
+
+
 async def extract_winners(
     scraped_text: str,
     already_announced: set[str],
@@ -75,6 +100,13 @@ If no new winners are found, return an empty array: []"""
         if raw_text.startswith("```"):
             raw_text = raw_text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
 
+        # Try to extract JSON array if Claude wrapped it in text
+        if not raw_text.startswith("["):
+            import re
+            match = re.search(r'\[.*\]', raw_text, re.DOTALL)
+            if match:
+                raw_text = match.group(0)
+
         results = json.loads(raw_text)
 
         if not isinstance(results, list):
@@ -95,12 +127,18 @@ If no new winners are found, return an empty array: []"""
             if cat not in category_names:
                 logger.warning(f"Claude returned unknown category: '{cat}'")
                 continue
-            if winner not in nominees_by_cat.get(cat, set()):
-                logger.warning(f"Claude returned invalid nominee '{winner}' for '{cat}'")
-                continue
             if cat in already_announced:
                 logger.debug(f"Skipping already-announced category: '{cat}'")
                 continue
+            if winner not in nominees_by_cat.get(cat, set()):
+                # Fuzzy match: try to find the nominee by name
+                matched = _fuzzy_match_nominee(winner, nominees_by_cat.get(cat, set()))
+                if matched:
+                    logger.info(f"Fuzzy matched '{winner}' -> '{matched}' for '{cat}'")
+                    winner = matched
+                else:
+                    logger.warning(f"Claude returned invalid nominee '{winner}' for '{cat}'")
+                    continue
 
             # Filter by minimum confidence
             if config.MIN_CONFIDENCE == "high" and confidence != "high":
@@ -119,7 +157,7 @@ If no new winners are found, return an empty array: []"""
 
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse Claude response as JSON: {e}")
-        logger.debug(f"Raw response: {raw_text}")
+        logger.warning(f"Raw Claude response: {raw_text[:500]}")
         return []
     except anthropic.APIError as e:
         logger.error(f"Anthropic API error: {e}")

@@ -10,7 +10,7 @@ HEADERS = {
     "Accept": "text/html,application/xhtml+xml",
 }
 
-MAX_ENTRIES = 15  # Only grab the most recent entries to keep context small
+MAX_ENTRIES = 50  # Grab more entries to capture winners deeper in the page
 
 
 async def fetch_source(source: dict) -> str | None:
@@ -29,7 +29,7 @@ async def fetch_source(source: dict) -> str | None:
         if not elements:
             logger.warning(f"[{name}] No elements matched selector '{selector}' — page may have changed")
             # Fallback: grab all <p> tags from the page body
-            elements = soup.select("main p, article p, .content p")
+            elements = soup.select("main p, article p, .content p, main li, article li, .content li, main h3, article h3")
 
         # Take the most recent entries (live blogs are typically newest-first)
         entries = elements[:MAX_ENTRIES]
@@ -40,6 +40,7 @@ async def fetch_source(source: dict) -> str | None:
             return None
 
         logger.info(f"[{name}] Scraped {len(entries)} entries ({len(text)} chars)")
+        logger.debug(f"[{name}] Scraped text:\n{text[:2000]}")
         return f"--- Source: {name} ---\n{text}"
 
     except httpx.HTTPStatusError as e:

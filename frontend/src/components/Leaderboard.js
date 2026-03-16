@@ -31,24 +31,27 @@ function cardGlowClass(idx, hasScore) {
 function StatsBar({ data, announcedCount, totalCategories, scoreField = 'total_score' }) {
   if (data.length < 2 || announcedCount === 0) return null;
 
+  // Filter out players with no points yet (they clutter the stats)
+  const scoredPlayers = data.filter(p => p[scoreField] > 0);
+
   // Closest race: smallest gap between adjacent players
   let closestGap = Infinity, closestPair = null;
-  for (let i = 0; i < data.length - 1; i++) {
-    const gap = data[i][scoreField] - data[i + 1][scoreField];
+  for (let i = 0; i < scoredPlayers.length - 1; i++) {
+    const gap = scoredPlayers[i][scoreField] - scoredPlayers[i + 1][scoreField];
     if (gap < closestGap) {
       closestGap = gap;
-      closestPair = [data[i].name, data[i + 1].name];
+      closestPair = [scoredPlayers[i].name, scoredPlayers[i + 1].name];
     }
   }
 
   // Biggest lead: largest gap between adjacent players
   let biggestGap = 0, biggestLeader = null, biggestTrailer = null;
-  for (let i = 0; i < data.length - 1; i++) {
-    const gap = data[i][scoreField] - data[i + 1][scoreField];
+  for (let i = 0; i < scoredPlayers.length - 1; i++) {
+    const gap = scoredPlayers[i][scoreField] - scoredPlayers[i + 1][scoreField];
     if (gap > biggestGap) {
       biggestGap = gap;
-      biggestLeader = data[i].name;
-      biggestTrailer = data[i + 1].name;
+      biggestLeader = scoredPlayers[i].name;
+      biggestTrailer = scoredPlayers[i + 1].name;
     }
   }
 
