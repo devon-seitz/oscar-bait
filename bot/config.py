@@ -12,7 +12,7 @@ OSCAR_API_URL = os.environ.get("OSCAR_API_URL", "http://localhost:8000")
 ADMIN_PASSCODE = os.environ.get("ADMIN_PASSCODE", "")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 BOT_MODE = os.environ.get("BOT_MODE", "auto")  # "auto" or "confirm"
-POLL_INTERVAL = int(os.environ.get("POLL_INTERVAL", "45"))
+POLL_INTERVAL = int(os.environ.get("POLL_INTERVAL", "15"))
 MIN_CONFIDENCE = os.environ.get("MIN_CONFIDENCE", "high")  # "high" or "medium"
 LOG_LEVEL = os.environ.get("BOT_LOG_LEVEL", "INFO")
 

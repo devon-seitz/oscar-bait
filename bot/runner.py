@@ -17,10 +17,13 @@ CIRCUIT_BREAKER_PAUSE = 300  # 5 minutes
 def setup_logging():
     logging.basicConfig(
         level=getattr(logging, config.LOG_LEVEL),
-        format="%(asctime)s [%(name)s] %(levelname)s: %(message)s",
+        format="%(asctime)s %(message)s",
         datefmt="%H:%M:%S",
         stream=sys.stdout,
     )
+    # Silence noisy HTTP request logging from httpx/httpcore
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 
 async def confirm_with_user(category: str, winner: str, quote: str) -> bool:
@@ -47,11 +50,20 @@ async def confirm_with_user(category: str, winner: str, quote: str) -> bool:
 
 async def run_poll_cycle(state: BotState) -> int:
     """Run one poll cycle. Returns number of winners announced."""
+    import hashlib
+
     # Scrape sources
     scraped_text = await scrape_all_sources(config.SOURCES)
     if not scraped_text:
         logger.info("No text from any source — skipping cycle")
         return 0
+
+    # Skip Claude call if scraped content hasn't changed
+    content_hash = hashlib.md5(scraped_text.encode()).hexdigest()
+    if content_hash == state.last_content_hash:
+        logger.info("Scraped content unchanged — skipping Claude call")
+        return 0
+    state.last_content_hash = content_hash
 
     # Extract winners via Claude
     try:
@@ -67,7 +79,6 @@ async def run_poll_cycle(state: BotState) -> int:
         return 0
 
     if not winners:
-        logger.info("No new winners detected")
         return 0
 
     announced_count = 0

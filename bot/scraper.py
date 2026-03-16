@@ -12,6 +12,16 @@ HEADERS = {
 
 MAX_ENTRIES = 50  # Grab more entries to capture winners deeper in the page
 
+# Reuse a single client across all fetches to keep connections alive
+_client: httpx.AsyncClient | None = None
+
+
+def _get_client() -> httpx.AsyncClient:
+    global _client
+    if _client is None or _client.is_closed:
+        _client = httpx.AsyncClient(timeout=15, follow_redirects=True, headers=HEADERS)
+    return _client
+
 
 async def fetch_source(source: dict) -> str | None:
     name = source["name"]
@@ -19,15 +29,14 @@ async def fetch_source(source: dict) -> str | None:
     selector = source["selector"]
 
     try:
-        async with httpx.AsyncClient(timeout=15, follow_redirects=True, headers=HEADERS) as client:
-            resp = await client.get(url)
-            resp.raise_for_status()
+        client = _get_client()
+        resp = await client.get(url)
+        resp.raise_for_status()
 
         soup = BeautifulSoup(resp.text, "html.parser")
         elements = soup.select(selector)
 
         if not elements:
-            logger.warning(f"[{name}] No elements matched selector '{selector}' — page may have changed")
             # Fallback: grab all <p> tags from the page body
             elements = soup.select("main p, article p, .content p, main li, article li, .content li, main h3, article h3")
 
@@ -39,8 +48,7 @@ async def fetch_source(source: dict) -> str | None:
             logger.warning(f"[{name}] Fetched page but extracted no text")
             return None
 
-        logger.info(f"[{name}] Scraped {len(entries)} entries ({len(text)} chars)")
-        logger.debug(f"[{name}] Scraped text:\n{text[:2000]}")
+        logger.debug(f"[{name}] Scraped {len(entries)} entries ({len(text)} chars)")
         return f"--- Source: {name} ---\n{text}"
 
     except httpx.HTTPStatusError as e:
@@ -61,8 +69,12 @@ async def scrape_all_sources(sources: list[dict]) -> str:
     texts = [r for r in results if r]
 
     if not texts:
-        logger.warning("No sources returned usable text")
+        logger.warning("Scrape: 0/{len(sources)} sources returned text")
         return ""
 
-    logger.info(f"Got text from {len(texts)}/{len(sources)} sources")
+    failed = [s["name"] for s, r in zip(sources, results) if r is None]
+    if failed:
+        logger.info(f"Scraped {len(texts)}/{len(sources)} sources (failed: {', '.join(failed)})")
+    else:
+        logger.info(f"Scraped {len(texts)}/{len(sources)} sources ✓")
     return "\n\n".join(texts)

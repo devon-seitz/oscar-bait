@@ -11,13 +11,63 @@ from . import config
 
 logger = logging.getLogger("oscar_bot")
 
-SYSTEM_PROMPT = """You are an Oscar ceremony winner extraction bot. Your job is to read live blog text and identify any Oscar winners that have been officially announced.
+SYSTEM_PROMPT = """You are an Oscar ceremony winner extraction bot. You read live blog text and identify ONLY officially announced Oscar winners.
 
-RULES:
-1. Only report a winner if the text CLEARLY states they won. Phrases like "And the Oscar goes to...", "Winner:", "[Category] won by", or explicit statements that someone has won count. Predictions, speculation, "expected to win", "should win", or "frontrunner" do NOT count.
-2. You must match winners to EXACTLY one of the provided nominee strings. Return the nominee string VERBATIM — character for character, including accented characters (é, ā), em-dashes (—), and quoted titles. Do NOT paraphrase, abbreviate, or modify the strings in any way.
-3. If you are not confident a winner has been officially announced, do not include it. It is better to miss a winner than to report a false one.
-4. Return valid JSON only, no other text."""
+FALSE POSITIVES ARE CATASTROPHIC. When in doubt, report nothing.
+
+## STEP 1: For each potential winner, you MUST find a "proof sentence"
+
+A proof sentence is a direct, past-tense or present-announcement statement that someone WON. It must contain language like:
+  - "And the Oscar goes to [NAME]"
+  - "[NAME] wins Best [Category]"  
+  - "[NAME] has won the Oscar for [Category]"
+  - "Winner: [NAME]"
+  - "The award for [Category] goes to [NAME]"
+
+If you cannot identify a single specific sentence that unambiguously announces the winner, DO NOT report it.
+
+## STEP 2: Verify it is NOT one of these false positive patterns
+
+NONE of these are winner announcements, even if they sound confident:
+  - PREDICTIONS: "expected to win", "should win", "is the frontrunner", "will likely take", "is favored", "has this locked up", "our pick is", "we think X wins"
+  - PERFORMANCES: A song being performed or sung on stage does NOT mean it won Best Original Song. A clip being shown does NOT mean it won.
+  - PRESENTER INTROS: "X takes the stage to present Best Y" is NOT X winning.
+  - NOMINEE LISTS: A list of all nominees in a category is NOT a winner announcement, even if one name appears bold or first.
+  - PAST TENSE RECAPS OF PRIOR YEARS: "X won the Oscar in 2024" is not a 2026 winner.
+  - CONDITIONAL/SPECULATIVE: "If X wins...", "When X wins...", "X could win"
+  - AUDIENCE REACTIONS without explicit win language: "Standing ovation for X" is NOT a win.
+
+## STEP 3: Match to the exact category
+
+The source text must specify or clearly imply the EXACT category. Similar categories are DIFFERENT awards:
+  - "Best Actor" ≠ "Best Supporting Actor"  
+  - "Best Adapted Screenplay" ≠ "Best Original Screenplay"
+  - "Best Original Score" ≠ "Best Original Song"
+
+If the text just says someone "won an Oscar" without specifying which one, SKIP IT.
+
+## STEP 4: Match the winner string VERBATIM
+
+Return the nominee string exactly as provided in the nominee list, character for character, including accented characters (é, ā), em dashes, and quoted titles.
+
+## OUTPUT FORMAT
+
+Return ONLY valid JSON. For each winner, include:
+{
+  "winners": [
+    {
+      "category": "exact category name",
+      "winner": "exact nominee string from provided list",
+      "proof": "the exact sentence from the source that confirms the win"
+    }
+  ]
+}
+
+If no winners are confirmed, return: {"winners": []}
+
+The "proof" field is mandatory. If you cannot fill it with a real, unambiguous sentence from the text, do not include that winner.
+
+IMPORTANT: Do NOT explain your reasoning. Do NOT output any text before or after the JSON. Return ONLY the JSON object, nothing else."""
 
 
 def _build_categories_text(already_announced: set[str]) -> str:
@@ -77,19 +127,17 @@ Here is the latest text from live coverage of the Oscar ceremony:
 {scraped_text}
 ---
 
-Extract any newly announced winners. Return a JSON array of objects:
-[{{"category": "exact category name", "winner": "exact nominee string", "confidence": "high", "source_quote": "the exact text that confirms this"}}]
+Follow the steps in your instructions. Return JSON in this format:
+{{"winners": [{{"category": "exact category name", "winner": "exact nominee string from the list above", "proof": "the exact sentence from the source that confirms this win"}}]}}
 
-Set confidence to "high" only if the text explicitly confirms a win. Set to "medium" if the text strongly implies it but isn't explicit.
-
-If no new winners are found, return an empty array: []"""
+If no winners are confirmed, return: {{"winners": []}}"""
 
     client = anthropic.AsyncAnthropic(api_key=config.ANTHROPIC_API_KEY)
 
     try:
         response = await client.messages.create(
             model=config.CLAUDE_MODEL,
-            max_tokens=2048,
+            max_tokens=4096,
             system=SYSTEM_PROMPT,
             messages=[{"role": "user", "content": user_prompt}],
         )
@@ -100,17 +148,22 @@ If no new winners are found, return an empty array: []"""
         if raw_text.startswith("```"):
             raw_text = raw_text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
 
-        # Try to extract JSON array if Claude wrapped it in text
-        if not raw_text.startswith("["):
+        # Try to extract JSON object or array
+        if not raw_text.startswith(("{", "[")):
             import re
-            match = re.search(r'\[.*\]', raw_text, re.DOTALL)
+            match = re.search(r'[\{\[].*[\}\]]', raw_text, re.DOTALL)
             if match:
                 raw_text = match.group(0)
 
-        results = json.loads(raw_text)
+        parsed = json.loads(raw_text)
 
-        if not isinstance(results, list):
-            logger.error(f"Claude returned non-list: {type(results)}")
+        # Handle both {"winners": [...]} and bare [...] formats
+        if isinstance(parsed, dict):
+            results = parsed.get("winners", [])
+        elif isinstance(parsed, list):
+            results = parsed
+        else:
+            logger.error(f"Claude returned unexpected type: {type(parsed)}")
             return []
 
         # Validate each result against CATEGORIES
@@ -118,11 +171,22 @@ If no new winners are found, return an empty array: []"""
         category_names = {cat["name"] for cat in CATEGORIES}
         nominees_by_cat = {cat["name"]: set(cat["nominees"]) for cat in CATEGORIES}
 
+        # Build a map of confusable category pairs for cross-validation
+        _confusable_pairs = {
+            "Best Actor": "Best Supporting Actor",
+            "Best Supporting Actor": "Best Actor",
+            "Best Actress": "Best Supporting Actress",
+            "Best Supporting Actress": "Best Actress",
+            "Best Adapted Screenplay": "Best Original Screenplay",
+            "Best Original Screenplay": "Best Adapted Screenplay",
+            "Best Original Score": "Best Original Song",
+            "Best Original Song": "Best Original Score",
+        }
+
         for r in results:
             cat = r.get("category", "")
             winner = r.get("winner", "")
-            confidence = r.get("confidence", "medium")
-            quote = r.get("source_quote", "")
+            quote = r.get("proof", "") or r.get("source_quote", "")
 
             if cat not in category_names:
                 logger.warning(f"Claude returned unknown category: '{cat}'")
@@ -137,22 +201,30 @@ If no new winners are found, return an empty array: []"""
                     logger.info(f"Fuzzy matched '{winner}' -> '{matched}' for '{cat}'")
                     winner = matched
                 else:
+                    # Cross-category check: did Claude assign the winner to the wrong similar category?
+                    sibling = _confusable_pairs.get(cat)
+                    if sibling and sibling not in already_announced:
+                        sibling_match = _fuzzy_match_nominee(winner, nominees_by_cat.get(sibling, set()))
+                        if sibling_match:
+                            logger.warning(
+                                f"CATEGORY MIX-UP: '{winner}' is not a '{cat}' nominee "
+                                f"but matches '{sibling}' nominee '{sibling_match}'. "
+                                f"Rejecting — source text likely refers to '{sibling}', not '{cat}'."
+                            )
+                            continue
                     logger.warning(f"Claude returned invalid nominee '{winner}' for '{cat}'")
                     continue
-
-            # Filter by minimum confidence
-            if config.MIN_CONFIDENCE == "high" and confidence != "high":
-                logger.info(f"Skipping '{cat}' — confidence is '{confidence}', need 'high'")
-                continue
 
             validated.append({
                 "category": cat,
                 "winner": winner,
-                "confidence": confidence,
                 "source_quote": quote,
             })
 
-        logger.info(f"Extracted {len(validated)} valid winner(s) from Claude response")
+        if validated:
+            logger.info(f"Claude found {len(validated)} winner(s)!")
+        else:
+            logger.info("Claude: no new winners")
         return validated
 
     except json.JSONDecodeError as e:

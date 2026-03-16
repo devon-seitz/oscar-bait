@@ -9,6 +9,7 @@ class BotState:
         self.announced: set[str] = set()
         self.action_log: list[dict] = []
         self.consecutive_errors = 0
+        self.last_content_hash: str | None = None
 
     def mark_announced(self, category: str):
         self.announced.add(category)
